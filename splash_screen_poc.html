@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Splash screen concepts — Ludo Nexus</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-bg:#ffffff; --card-border:#d7dce6; --accent:#2a3e66;
+  --navy-top:#2a3e66; --navy-bottom:#162444;
+  --phone-bezel:#0e1420;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 72px; }
+.wrap{ max-width:1180px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(24px,3vw,32px); margin:0 0 10px; letter-spacing:-0.01em; text-wrap:balance; }
+.lede{ font-size:15.5px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 16px; }
+.opinion{ background:var(--card-bg); border:1px solid var(--card-border); border-left:3px solid var(--accent); border-radius:10px; padding:18px 22px; margin:0 0 36px; max-width:82ch; }
+.opinion h2{ font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); margin:0 0 10px; font-weight:700; }
+.opinion p{ font-size:14.5px; line-height:1.65; margin:0 0 10px; }
+.opinion p:last-child{ margin-bottom:0; }
+.rec-tag{ display:inline-block; font-size:11px; font-weight:700; background:var(--accent); color:#fff; padding:2px 9px; border-radius:20px; margin-right:8px; }
+
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:24px; }
+.option{ background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; align-items:center; }
+.option-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; }
+.option-label{ font-size:13.5px; font-weight:700; }
+.badge{ font-size:10.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding:2px 9px; border-radius:20px; background:var(--accent); color:#fff; }
+.badge.muted{ background:var(--ink-dim); }
+.desc{ font-size:12px; line-height:1.5; color:var(--ink-dim); margin:0; text-align:center; }
+.replay{ font-size:11px; font-weight:700; color:var(--accent); background:none; border:1px solid var(--accent); border-radius:20px; padding:4px 12px; cursor:pointer; }
+.replay:hover{ background:var(--accent); color:#fff; }
+
+.phone{ background:var(--phone-bezel); border-radius:26px; padding:9px; box-shadow:0 12px 26px rgba(0,0,0,0.2); }
+.screen{ width:230px; aspect-ratio:9/17.5; border-radius:18px; overflow:hidden; background:linear-gradient(180deg,var(--navy-top),var(--navy-bottom)); position:relative; display:flex; align-items:center; justify-content:center; }
+.screen::after{ content:""; position:absolute; inset:0; pointer-events:none; background-image:radial-gradient(6px 6px at 15% 20%, rgba(110,140,195,0.35) 40%, transparent 41%), radial-gradient(4px 4px at 82% 75%, rgba(110,140,195,0.35) 40%, transparent 41%); opacity:0.5; }
+
+/* --- shared dice pip building block --- */
+.die{ width:56px; height:56px; border-radius:14px; position:relative; box-shadow:0 6px 14px rgba(0,0,0,0.35); }
+.die .pip{ position:absolute; width:8px; height:8px; border-radius:50%; background:#2a2016; }
+.die.red{ background:radial-gradient(circle at 32% 28%, #ff9b8a, #ee3b2f 55%, #a81208); }
+.die.blue{ background:radial-gradient(circle at 32% 28%, #7fd8ff, #0aa8e8 55%, #03567f); }
+
+.content{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.dice-row{ display:flex; gap:10px; }
+.brand{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+.brand .title{ color:#fff; font-size:20px; font-weight:800; letter-spacing:0.01em; }
+.brand .tag{ color:rgba(255,255,255,0.65); font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; }
+
+/* ===== Option A: bounce + glow ===== */
+.optA .glow{ position:absolute; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle, rgba(255,209,102,0.35), transparent 70%); animation: pulseA 2.2s ease-in-out infinite; }
+@keyframes pulseA{ 0%,100%{ transform:scale(0.85); opacity:0.5;} 50%{ transform:scale(1.05); opacity:1;} }
+.optA .dice-row{ animation: dropA 2.2s cubic-bezier(.34,1.56,.64,1) infinite; }
+@keyframes dropA{ 0%{ transform:translateY(-40px) scale(0.6); opacity:0;} 30%{ transform:translateY(0) scale(1.08); opacity:1;} 40%{ transform:translateY(0) scale(1);} 100%{ transform:translateY(0) scale(1);} }
+.optA .brand{ animation: fadeUpA 2.2s ease infinite; }
+@keyframes fadeUpA{ 0%,25%{ opacity:0; transform:translateY(10px);} 45%,100%{ opacity:1; transform:translateY(0);} }
+
+/* ===== Option B: rolling dice tumble ===== */
+.optB .dice-row{ animation: tumbleB 2.4s ease infinite; }
+@keyframes tumbleB{
+  0%{ transform:translateX(-90px) rotate(0deg); opacity:0; }
+  15%{ opacity:1; }
+  45%{ transform:translateX(0) rotate(540deg); }
+  55%{ transform:translateX(0) rotate(540deg); }
+  100%{ transform:translateX(0) rotate(540deg); }
+}
+.optB .brand{ animation: fadeUpA 2.4s ease infinite; animation-delay:0s; }
+.optB .brand{ opacity:0; animation: fadeUpB 2.4s ease infinite; }
+@keyframes fadeUpB{ 0%,50%{ opacity:0; transform:translateY(10px);} 68%,100%{ opacity:1; transform:translateY(0);} }
+
+/* ===== Option C: minimal fade ===== */
+.optC .content{ animation: fadeC 1.8s ease infinite; }
+@keyframes fadeC{ 0%{ opacity:0; transform:scale(0.92);} 30%,100%{ opacity:1; transform:scale(1);} }
+
+footer{ margin-top:44px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+
+.section-title{ font-size:14px; font-weight:700; margin:40px 0 16px; }
+
+/* ===== Option D: board reveal ===== */
+.mini-board{ width:120px; height:120px; border-radius:10px; background:#f7ecd3; position:relative; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,0.3); }
+.mini-quad{ position:absolute; width:46px; height:46px; border-radius:8px; }
+.mini-quad.q-red{ top:6px; left:6px; background:#e5393588; animation: slideRed 2.4s ease infinite; }
+.mini-quad.q-green{ top:6px; right:6px; background:#0fb85a88; animation: slideGreen 2.4s ease infinite; }
+.mini-quad.q-blue{ bottom:6px; left:6px; background:#0aa8e888; animation: slideBlue 2.4s ease infinite; }
+.mini-quad.q-yellow{ bottom:6px; right:6px; background:#ffd40088; animation: slideYellow 2.4s ease infinite; }
+@keyframes slideRed{ 0%{ transform:translate(-40px,-40px); opacity:0;} 35%,100%{ transform:translate(0,0); opacity:1;} }
+@keyframes slideGreen{ 0%{ transform:translate(40px,-40px); opacity:0;} 35%,100%{ transform:translate(0,0); opacity:1;} }
+@keyframes slideBlue{ 0%{ transform:translate(-40px,40px); opacity:0;} 35%,100%{ transform:translate(0,0); opacity:1;} }
+@keyframes slideYellow{ 0%{ transform:translate(40px,40px); opacity:0;} 35%,100%{ transform:translate(0,0); opacity:1;} }
+.mini-center{ position:absolute; top:50%; left:50%; width:0; height:0; transform:translate(-50%,-50%) scale(0); border-radius:4px;
+  background:conic-gradient(#e53935 0 90deg, #0fb85a 90deg 180deg, #ffd400 180deg 270deg, #0aa8e8 270deg 360deg);
+  animation: popCenter 2.4s ease infinite; }
+@keyframes popCenter{ 0%,45%{ width:0; height:0; opacity:0;} 60%{ width:34px; height:34px; opacity:1; transform:translate(-50%,-50%) scale(1.15);} 70%,100%{ width:30px; height:30px; opacity:1; transform:translate(-50%,-50%) scale(1);} }
+.optD .brand{ opacity:0; animation: fadeUpD 2.4s ease infinite; }
+@keyframes fadeUpD{ 0%,72%{ opacity:0; transform:translateY(10px);} 88%,100%{ opacity:1; transform:translateY(0);} }
+
+/* ===== Option E: shine sweep ===== */
+.optE .dice-row{ position:relative; overflow:visible; }
+.shine{ position:absolute; top:-20px; left:-60px; width:40px; height:130px; background:linear-gradient(100deg, transparent, rgba(255,255,255,0.75), transparent); transform:rotate(20deg); animation: sweepE 2.6s ease infinite; }
+@keyframes sweepE{ 0%,20%{ left:-60px;} 55%,100%{ left:150px;} }
+.optE .brand{ opacity:0; animation: fadeE 2.6s ease infinite; }
+@keyframes fadeE{ 0%,15%{ opacity:0;} 35%,100%{ opacity:1;} }
+
+/* ===== Option F: confetti pop ===== */
+.optF .dice-row{ animation: dropF 2.4s cubic-bezier(.34,1.56,.64,1) infinite; }
+@keyframes dropF{ 0%{ transform:scale(0.5); opacity:0;} 25%{ transform:scale(1.06); opacity:1;} 34%{ transform:scale(1);} 100%{ transform:scale(1);} }
+.confetti-bit{ position:absolute; width:5px; height:5px; opacity:0; }
+.optF .confetti-bit{ animation: burstF 2.4s ease infinite; }
+@keyframes burstF{ 0%,26%{ opacity:0; transform:translate(0,0) scale(0.6);} 27%{ opacity:1;} 60%{ opacity:1;} 85%,100%{ opacity:0;} }
+.optF .brand{ opacity:0; animation: fadeUpD 2.4s ease infinite; animation-delay:0.1s; }
+.optF .confetti-bit{ animation-duration:2.4s; animation-timing-function:ease; animation-iteration-count:infinite; }
+@keyframes burstF1{ 0%,26%{ opacity:0; transform:translate(0,0);} 27%{ opacity:1;} 60%{ opacity:1; transform:translate(-30px,20px) rotate(90deg);} 85%,100%{ opacity:0; transform:translate(-40px,28px) rotate(120deg);} }
+@keyframes burstF2{ 0%,26%{ opacity:0; transform:translate(0,0);} 27%{ opacity:1;} 60%{ opacity:1; transform:translate(10px,-34px) rotate(-90deg);} 85%,100%{ opacity:0; transform:translate(14px,-44px) rotate(-120deg);} }
+@keyframes burstF3{ 0%,26%{ opacity:0; transform:translate(0,0);} 27%{ opacity:1;} 60%{ opacity:1; transform:translate(32px,14px) rotate(60deg);} 85%,100%{ opacity:0; transform:translate(42px,20px) rotate(90deg);} }
+@keyframes burstF4{ 0%,26%{ opacity:0; transform:translate(0,0);} 27%{ opacity:1;} 60%{ opacity:1; transform:translate(-20px,-30px) rotate(-60deg);} 85%,100%{ opacity:0; transform:translate(-28px,-40px) rotate(-90deg);} }
+@keyframes burstF5{ 0%,26%{ opacity:0; transform:translate(0,0);} 27%{ opacity:1;} 60%{ opacity:1; transform:translate(24px,30px) rotate(45deg);} 85%,100%{ opacity:0; transform:translate(32px,40px) rotate(80deg);} }
+
+/* ===== Option G: Om zoom-in (PowerPoint-style "Zoom" entrance) ===== */
+.optG .om{
+  font-size:120px; line-height:1; color:#ffd166;
+  text-shadow:0 0 30px rgba(255,209,102,0.55), 0 4px 10px rgba(0,0,0,0.4);
+  animation: zoomG 2.6s cubic-bezier(.2,.8,.2,1) infinite;
+}
+@keyframes zoomG{
+  0%{ transform:scale(0.05); opacity:0; }
+  10%{ opacity:1; }
+  38%{ transform:scale(1.15); opacity:1; }
+  50%{ transform:scale(1); }
+  100%{ transform:scale(1); }
+}
+.optG .brand{ opacity:0; animation: fadeUpD 2.6s ease infinite; animation-delay:0.15s; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Splash screen · POC, not implemented</p>
+  <h1>7 launch-moment concepts for Ludo Nexus</h1>
+  <p class="lede">Each loops continuously here so you can watch the motion (in the real app it plays once, then auto-navigates to the setup screen after ~1.5-2s). All reuse the app's own navy background and dice-token art style.</p>
+
+  <div class="opinion">
+    <h2>Opinion</h2>
+    <p><span class="rec-tag">Recommended</span><strong>Option A -- bounce &amp; glow.</strong> It's the most "alive" of the three without being distracting, and the soft glow pulse behind the dice echoes the glossy-token look already established for the pieces and app icon. Option C is the safer, faster fallback if you'd rather players get to the setup screen as quickly as possible. Of the new batch, <strong>Option D -- board reveal</strong> is the strongest alternative: it previews the actual game board instead of just showing the icon again, which is a nice bit of storytelling for a first launch.</p>
+  </div>
+
+  <div class="grid">
+    <div class="option">
+      <div class="option-head"><span class="option-label">A · Bounce &amp; glow</span><span class="badge">Recommended</span></div>
+      <p class="desc">Dice drop in with a bounce, soft gold glow pulses behind them, title fades up beneath.</p>
+      <div class="phone"><div class="screen optA">
+        <div class="glow"></div>
+        <div class="content">
+          <div class="dice-row">
+            <div class="die red"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:12px;right:12px;"></span><span class="pip" style="top:24px;left:24px;"></span><span class="pip" style="bottom:12px;left:12px;"></span><span class="pip" style="bottom:12px;right:12px;"></span></div>
+            <div class="die blue"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:12px;right:12px;"></span><span class="pip" style="bottom:12px;left:12px;"></span><span class="pip" style="bottom:12px;right:12px;"></span></div>
+          </div>
+          <div class="brand"><span class="title">Ludo Nexus</span><span class="tag">Roll &middot; Race &middot; Rule the Board</span></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="option">
+      <div class="option-head"><span class="option-label">B · Rolling tumble</span><span class="badge muted">Alt</span></div>
+      <p class="desc">Dice tumble in from the side, spinning to a stop, then the title reveals.</p>
+      <div class="phone"><div class="screen optB">
+        <div class="content">
+          <div class="dice-row">
+            <div class="die red"><span class="pip" style="top:24px;left:24px;"></span></div>
+            <div class="die blue"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:12px;right:12px;"></span><span class="pip" style="top:24px;left:24px;"></span><span class="pip" style="bottom:12px;left:12px;"></span><span class="pip" style="bottom:12px;right:12px;"></span><span class="pip" style="top:24px;right:12px;"></span></div>
+          </div>
+          <div class="brand"><span class="title">Ludo Nexus</span><span class="tag">Roll &middot; Race &middot; Rule the Board</span></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="option">
+      <div class="option-head"><span class="option-label">C · Minimal fade</span><span class="badge muted">Fastest</span></div>
+      <p class="desc">Simple scale + fade-in, no bounce or motion path -- quickest to get out of the way.</p>
+      <div class="phone"><div class="screen optC">
+        <div class="content">
+          <div class="dice-row">
+            <div class="die red"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:24px;left:24px;"></span><span class="pip" style="bottom:12px;right:12px;"></span></div>
+            <div class="die blue"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:12px;right:12px;"></span><span class="pip" style="bottom:12px;left:12px;"></span><span class="pip" style="bottom:12px;right:12px;"></span></div>
+          </div>
+          <div class="brand"><span class="title">Ludo Nexus</span><span class="tag">Roll &middot; Race &middot; Rule the Board</span></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <p class="section-title">More directions</p>
+  <div class="grid">
+    <div class="option">
+      <div class="option-head"><span class="option-label">D · Board reveal</span><span class="badge">New</span></div>
+      <p class="desc">The 4 corners slide in from their own directions, the center diamond pops in last, then the title.</p>
+      <div class="phone"><div class="screen optD">
+        <div class="content">
+          <div class="mini-board">
+            <div class="mini-quad q-red"></div>
+            <div class="mini-quad q-green"></div>
+            <div class="mini-quad q-blue"></div>
+            <div class="mini-quad q-yellow"></div>
+            <div class="mini-center"></div>
+          </div>
+          <div class="brand"><span class="title">Ludo Nexus</span><span class="tag">Roll &middot; Race &middot; Rule the Board</span></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="option">
+      <div class="option-head"><span class="option-label">E · Shine sweep</span><span class="badge">New</span></div>
+      <p class="desc">Dice sit still, a diagonal gloss streak sweeps across them once, title fades in after.</p>
+      <div class="phone"><div class="screen optE">
+        <div class="content">
+          <div class="dice-row">
+            <div class="shine"></div>
+            <div class="die red"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:12px;right:12px;"></span><span class="pip" style="top:24px;left:24px;"></span><span class="pip" style="bottom:12px;left:12px;"></span><span class="pip" style="bottom:12px;right:12px;"></span></div>
+            <div class="die blue"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:12px;right:12px;"></span><span class="pip" style="bottom:12px;left:12px;"></span><span class="pip" style="bottom:12px;right:12px;"></span></div>
+          </div>
+          <div class="brand"><span class="title">Ludo Nexus</span><span class="tag">Roll &middot; Race &middot; Rule the Board</span></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="option">
+      <div class="option-head"><span class="option-label">F · Confetti pop</span><span class="badge">New</span></div>
+      <p class="desc">Dice bounce in, then a quick confetti burst radiates outward -- same celebratory feel as the finish-rank cards.</p>
+      <div class="phone"><div class="screen optF">
+        <div class="content" style="position:relative;">
+          <div class="dice-row" style="position:relative;">
+            <div class="confetti-bit" style="background:#f2b218; top:20px; left:-10px; animation-name:burstF1;"></div>
+            <div class="confetti-bit" style="background:#0aa8e8; top:-14px; left:40px; animation-name:burstF2;"></div>
+            <div class="confetti-bit" style="background:#0fb85a; top:30px; left:96px; animation-name:burstF3;"></div>
+            <div class="confetti-bit" style="background:#e53935; top:-10px; left:10px; animation-name:burstF4;"></div>
+            <div class="confetti-bit" style="background:#9369d8; top:40px; left:70px; animation-name:burstF5;"></div>
+            <div class="die red"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:12px;right:12px;"></span><span class="pip" style="top:24px;left:24px;"></span><span class="pip" style="bottom:12px;left:12px;"></span><span class="pip" style="bottom:12px;right:12px;"></span></div>
+            <div class="die blue"><span class="pip" style="top:12px;left:12px;"></span><span class="pip" style="top:12px;right:12px;"></span><span class="pip" style="bottom:12px;left:12px;"></span><span class="pip" style="bottom:12px;right:12px;"></span></div>
+          </div>
+          <div class="brand"><span class="title">Ludo Nexus</span><span class="tag">Roll &middot; Race &middot; Rule the Board</span></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="option">
+      <div class="option-head"><span class="option-label">G · ॐ zoom-in</span><span class="badge">New</span></div>
+      <p class="desc">The Om symbol punches in big from a point, PowerPoint "Zoom"-style, settles with a slight overshoot, then the title.</p>
+      <div class="phone"><div class="screen optG">
+        <div class="content">
+          <div class="om">ॐ</div>
+          <div class="brand"><span class="title">Ludo Nexus</span><span class="tag">Roll &middot; Race &middot; Rule the Board</span></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <footer>Mockup only -- nothing in the app has changed. Tagline text is a placeholder; happy to drop it entirely for an even simpler splash if you'd rather.</footer>
+</div>
+</body>
+</html>

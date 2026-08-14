@@ -38,6 +38,11 @@ class BoardWidget extends StatelessWidget {
   /// separate "whose turn" banner.
   final PlayerColor? activeColor;
 
+  /// Colors that have already finished all 4 pieces, mapped to their
+  /// 1-based placement (1 = 1st). A finished color's yard shows its rank
+  /// card instead of empty base slots for the rest of the match.
+  final Map<PlayerColor, int> finishedRanks;
+
   /// While a piece is stepping across the board, its position is driven by
   /// [walkingFraction] instead of its real (already-updated) engine
   /// position, so the UI can show it walking cell-by-cell rather than
@@ -56,12 +61,26 @@ class BoardWidget extends StatelessWidget {
     this.movablePieceKeys = const {},
     this.onPieceTap,
     this.activeColor,
+    this.finishedRanks = const {},
     this.walkingPiece,
     this.walkingFraction,
     this.diceBuilder,
   });
 
   static int pieceKey(PlayerColor color, int id) => color.index * 10 + id;
+
+  static String _finishCardAsset(int rank) {
+    switch (rank) {
+      case 1:
+        return 'assets/finish_cards/1st.png';
+      case 2:
+        return 'assets/finish_cards/2nd.png';
+      case 3:
+        return 'assets/finish_cards/3rd.png';
+      default:
+        return 'assets/finish_cards/last.png';
+    }
+  }
 
   Offset _fractionFor(Piece piece) {
     if (piece == walkingPiece && walkingFraction != null) {
@@ -105,19 +124,35 @@ class BoardWidget extends StatelessWidget {
         for (final player in players) {
           for (final piece in player.pieces) {
             final frac = fractionByPiece[piece]!;
-            final effectiveSize = piece.isFinished ? pieceSize * 0.6 : pieceSize;
+
+            // A single piece is already drawn larger than one board cell
+            // (for visibility/tap-target size), which is fine alone -- but
+            // N pieces sharing a cell each shrink to 1/N of that size (2
+            // pieces -> 50% each, 3 -> 33%, ...), staying fully visible
+            // side by side instead of any of them hiding behind another,
+            // packed into a small grid centered on the cell.
+            var effectiveSize = piece.isFinished ? pieceSize * 0.6 : pieceSize;
 
             Offset nudge = Offset.zero;
             if (!piece.isFinished) {
               final key = '${frac.dx.toStringAsFixed(3)}_${frac.dy.toStringAsFixed(3)}';
               final stack = stacks[key]!;
               final stackIndex = stack.indexOf(piece);
-              nudge = stack.length > 1
-                  ? Offset(
-                      (stackIndex % 2 == 0 ? -1 : 1) * pieceSize * 0.22,
-                      (stackIndex ~/ 2 == 0 ? -1 : 1) * pieceSize * 0.22,
-                    )
-                  : Offset.zero;
+              final n = stack.length;
+              if (n > 1) {
+                effectiveSize = pieceSize / n;
+                final cols = n <= 3 ? n : (n == 4 ? 2 : 3);
+                final rows = (n / cols).ceil();
+                final row = stackIndex ~/ cols;
+                final col = stackIndex % cols;
+                final itemsInRow = (row == rows - 1) ? (n - row * cols) : cols;
+                final rowWidth = itemsInRow * effectiveSize;
+                final gridHeight = rows * effectiveSize;
+                nudge = Offset(
+                  -rowWidth / 2 + (col + 0.5) * effectiveSize,
+                  -gridHeight / 2 + (row + 0.5) * effectiveSize,
+                );
+              }
             }
 
             final center = BoardLayout.toCanvas(frac, side) + nudge;
@@ -140,6 +175,24 @@ class BoardWidget extends StatelessWidget {
               ),
             ));
           }
+        }
+
+        final finishCardWidgets = <Widget>[];
+        for (final entry in finishedRanks.entries) {
+          final rect = BoardLayout.yardRect(entry.key);
+          final topLeft = BoardLayout.toCanvas(Offset(rect[0], rect[1]), side);
+          final bottomRight = BoardLayout.toCanvas(Offset(rect[0] + rect[2], rect[1] + rect[3]), side);
+          finishCardWidgets.add(Positioned(
+            key: ValueKey('finish_card_${entry.key.name}'),
+            left: topLeft.dx,
+            top: topLeft.dy,
+            width: bottomRight.dx - topLeft.dx,
+            height: bottomRight.dy - topLeft.dy,
+            child: Padding(
+              padding: EdgeInsets.all(side * 0.01),
+              child: Image.asset(_finishCardAsset(entry.value), fit: BoxFit.contain),
+            ),
+          ));
         }
 
         Widget? diceOverlay;
@@ -170,6 +223,7 @@ class BoardWidget extends StatelessWidget {
             children: [
               CustomPaint(size: Size(side, side), painter: BoardPainter(activeColor: activeColor)),
               ...pieceWidgets,
+              ...finishCardWidgets,
               if (diceOverlay != null) diceOverlay,
             ],
           ),

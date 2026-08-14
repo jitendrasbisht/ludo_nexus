@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/setup_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const LudoApp());
@@ -12,10 +12,10 @@ class LudoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Ludo',
+      title: 'Ludo Nexus',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(colorSchemeSeed: const Color(0xFF1E88E5), useMaterial3: true),
-      home: const SetupScreen(),
+      home: const SplashScreen(),
     );
   }
 }

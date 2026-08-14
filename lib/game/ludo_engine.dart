@@ -8,6 +8,18 @@ class MoveResult {
   final Piece? piece;
   final List<Piece> capturedPieces;
   final bool finishedPiece;
+
+  /// Set when this move was the one that completed all 4 of a player's
+  /// pieces -- the game doesn't necessarily end here (see [wonGame]), play
+  /// continues for whoever's left, but the UI should still call this out.
+  final LudoPlayer? justFinishedPlayer;
+
+  /// 1-based placement ([justFinishedPlayer]'s rank) when they finished.
+  final int? justFinishedRank;
+
+  /// True once this move brought the number of still-playing (unfinished)
+  /// players down to 1 -- the point the whole match ends, since there's no
+  /// one left to compete against the last player for the remaining spots.
   final bool wonGame;
 
   const MoveResult({
@@ -15,6 +27,8 @@ class MoveResult {
     this.piece,
     this.capturedPieces = const [],
     this.finishedPiece = false,
+    this.justFinishedPlayer,
+    this.justFinishedRank,
     this.wonGame = false,
   });
 }
@@ -28,9 +42,18 @@ class LudoEngine {
   final DiceRoller dice = DiceRoller();
 
   int currentPlayerIndex = 0;
-  int consecutiveSixes = 0;
+  int consecutiveBonusRolls = 0;
   int? lastRoll;
   bool gameOver = false;
+
+  /// Players in the order they finished all 4 pieces -- index 0 is 1st
+  /// place. The match keeps going after the first finish; once only one
+  /// player is still playing they're appended here automatically (last
+  /// place by default, since there's no one left to compete against).
+  final List<LudoPlayer> finishOrder = [];
+
+  /// The first player to finish (1st place) -- kept for the simple "who
+  /// won" case; see [finishOrder] for the full standings.
   LudoPlayer? winner;
 
   LudoEngine({required this.players}) {
@@ -41,10 +64,18 @@ class LudoEngine {
 
   LudoPlayer get currentPlayer => players[currentPlayerIndex];
 
-  /// True once three 6s have been rolled back to back by the same player --
-  /// the standard rule that forfeits the turn to prevent one player from
-  /// hogging the board forever on a lucky streak.
-  bool get mustForfeitTurn => consecutiveSixes >= 3;
+  /// True once a just-rolled 6 would be the third consecutive bonus roll
+  /// (a run of 6s / captures / finishes) for the same player -- the
+  /// standard "three 6s in a row forfeits the turn" rule, generalized to
+  /// the other bonus-roll triggers added alongside it.
+  ///
+  /// This can only ever fire for a 6: whether a non-6 roll earns a bonus
+  /// depends on whether the move that roll allows ends up capturing or
+  /// finishing a piece, which isn't known until [movePiece] actually
+  /// applies it. So a would-be third bonus roll from a capture or finish
+  /// is instead settled inside [movePiece] itself, after the move happens
+  /// (the move still counts, but no further roll is granted).
+  bool get mustForfeitTurn => lastRoll == 6 && consecutiveBonusRolls >= 2;
 
   /// Which of the current player's pieces can legally move given the
   /// dice value that was just rolled. Empty means the turn must be skipped.
@@ -68,13 +99,17 @@ class LudoEngine {
     }
     final value = dice.roll();
     lastRoll = value;
-    consecutiveSixes = (value == 6) ? consecutiveSixes + 1 : 0;
     return value;
   }
 
-  /// Moves [piece] by [diceValue] steps, applying capture and win rules,
-  /// and advances the turn unless the roll was a 6 (which grants another
-  /// roll for the same player).
+  /// Moves [piece] by [diceValue] steps, applying capture and win rules.
+  ///
+  /// The turn passes to the next player unless this roll earned a bonus --
+  /// rolling a 6, capturing an opponent's piece, or getting a piece all
+  /// the way home each grant one extra roll for the same player (never
+  /// more than one, even if several of those happen on the same move).
+  /// Three consecutive bonus rolls (any mix of the three) forfeits the
+  /// would-be third extra roll, same anti-hogging cap as before.
   MoveResult movePiece(Piece piece, int diceValue) {
     if (gameOver) return const MoveResult(success: false);
     if (!currentPlayer.pieces.contains(piece)) {
@@ -110,16 +145,35 @@ class LudoEngine {
       }
     }
 
+    LudoPlayer? justFinishedPlayer;
+    int? justFinishedRank;
+    if (currentPlayer.hasWon && !finishOrder.contains(currentPlayer)) {
+      finishOrder.add(currentPlayer);
+      justFinishedPlayer = currentPlayer;
+      justFinishedRank = finishOrder.length;
+      winner ??= currentPlayer;
+    }
+
+    // The match ends once only one player is still playing -- they're
+    // automatically last place, since there's nobody left to finish
+    // against them.
+    final stillPlaying = players.where((p) => !finishOrder.contains(p)).toList();
     var won = false;
-    if (currentPlayer.hasWon) {
+    if (stillPlaying.length <= 1) {
+      finishOrder.addAll(stillPlaying);
       gameOver = true;
-      winner = currentPlayer;
       won = true;
     }
 
     if (!gameOver) {
-      final rolledSix = diceValue == 6;
-      _advanceTurn(forceAdvance: !rolledSix);
+      // A player who just finished their own last piece has nothing left
+      // to move -- there's no roll to grant them even if this move would
+      // otherwise have earned one, so the turn always passes on.
+      final earnsBonus =
+          justFinishedPlayer == null && (diceValue == 6 || captured.isNotEmpty || finished);
+      final bonusGranted = earnsBonus && consecutiveBonusRolls < 2;
+      consecutiveBonusRolls = bonusGranted ? consecutiveBonusRolls + 1 : 0;
+      _advanceTurn(forceAdvance: !bonusGranted);
     }
 
     return MoveResult(
@@ -127,6 +181,8 @@ class LudoEngine {
       piece: piece,
       capturedPieces: captured,
       finishedPiece: finished,
+      justFinishedPlayer: justFinishedPlayer,
+      justFinishedRank: justFinishedRank,
       wonGame: won,
     );
   }
@@ -139,7 +195,7 @@ class LudoEngine {
 
   void _advanceTurn({required bool forceAdvance}) {
     if (!forceAdvance) return;
-    consecutiveSixes = 0;
+    consecutiveBonusRolls = 0;
     var tries = 0;
     do {
       currentPlayerIndex = (currentPlayerIndex + 1) % players.length;

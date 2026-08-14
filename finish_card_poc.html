@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Finish rank card — all 4 outcomes, all 4 styles</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-bg:#ffffff; --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 72px; }
+.wrap{ max-width:1180px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; text-wrap:balance; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 28px; }
+
+.style-block{ margin-bottom:36px; }
+.style-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:12px; }
+.style-head h2{ font-size:15px; margin:0; }
+.style-head span{ font-size:11.5px; color:var(--ink-dim); }
+
+.rank-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+@media (max-width:760px){ .rank-row{ grid-template-columns:repeat(2,1fr); } }
+
+.cell{ display:flex; flex-direction:column; gap:6px; }
+.cell-label{ font-size:11px; font-weight:700; text-align:center; color:var(--ink-dim); }
+
+.corner{
+  aspect-ratio:1; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden; box-shadow:0 6px 14px rgba(0,0,0,0.15);
+}
+.corner.p-red{ background:rgba(229,57,53,0.10); outline:3px solid #e53935; }
+.corner.p-green{ background:rgba(15,184,90,0.10); outline:3px solid #0fb85a; }
+.corner.p-blue{ background:rgba(10,168,232,0.10); outline:3px solid #0aa8e8; }
+.corner.p-yellow{ background:rgba(255,212,0,0.14); outline:3px solid #d1a900; }
+.corner{ outline-offset:-3px; }
+
+.mark{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; width:100%; height:100%; }
+
+/* rank palette */
+.gold{ color:#8a5b00; } .silver{ color:#5b6478; } .bronze{ color:#7a3d10; } .grey{ color:#6c7688; }
+
+/* Style 1: medal + burst -- sharp plate in the app's own navy, not black */
+.m1-bg-gold, .m1-bg-silver, .m1-bg-bronze, .m1-bg-grey{
+  background:#2a3e66;
+  position:relative;
+}
+.m1-bg-gold::before, .m1-bg-silver::before, .m1-bg-bronze::before, .m1-bg-grey::before{
+  content:""; position:absolute; inset:0;
+  background: conic-gradient(from 0deg, var(--ray-c) 0deg 14deg, transparent 14deg 30deg);
+  opacity:0.55;
+}
+.m1-bg-gold::after, .m1-bg-silver::after, .m1-bg-bronze::after, .m1-bg-grey::after{
+  content:""; position:absolute; inset:14%;
+  border-radius:50%;
+  background:#2a3e66;
+  box-shadow:0 0 0 2px var(--ray-c);
+}
+.m1-bg-gold{ --ray-c:#ffd23d; }
+.m1-bg-silver{ --ray-c:#d7dbe2; }
+.m1-bg-bronze{ --ray-c:#e0954a; }
+.m1-bg-grey{ --ray-c:#4a5164; }
+.medal-emoji{ font-size:28px; line-height:1; position:relative; z-index:1; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.6)); }
+.m1-tag{ font-size:8.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; margin-top:2px; position:relative; z-index:1; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.6); }
+.gold .m1-tag{ color:#ffd23d; } .silver .m1-tag{ color:#d7dbe2; } .bronze .m1-tag{ color:#e0954a; } .grey .m1-tag{ color:#8a93a8; }
+
+/* Style 2: ribbon */
+.ribbon{ position:absolute; top:16%; left:-12%; width:135%; transform:rotate(-32deg); text-align:center; font-size:10.5px; font-weight:800; letter-spacing:0.03em; padding:4px 0; color:#fff; box-shadow:0 3px 6px rgba(0,0,0,0.25); }
+.rb-gold{ background:linear-gradient(90deg,#e5a400,#ffcf3d); }
+.rb-silver{ background:linear-gradient(90deg,#8a8f98,#c3c8d1); color:#1b2333; }
+.rb-bronze{ background:linear-gradient(90deg,#b5762e,#d99a4e); }
+.rb-grey{ background:linear-gradient(90deg,#5b6478,#8a93a8); }
+
+/* Style 3: trophy plate */
+.m3-plate{ width:82%; height:82%; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.tp-gold{ background:linear-gradient(160deg,#e0a824,#a06e08); }
+.tp-silver{ background:linear-gradient(160deg,#aab0ba,#6e7684); }
+.tp-bronze{ background:linear-gradient(160deg,#b97b3d,#7a4b1c); }
+.tp-grey{ background:linear-gradient(160deg,#8a93a0,#5b6472); }
+.tp-gold .tp-ord, .tp-gold .tp-sub,
+.tp-silver .tp-ord, .tp-silver .tp-sub,
+.tp-bronze .tp-ord, .tp-bronze .tp-sub,
+.tp-grey .tp-ord, .tp-grey .tp-sub{ color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.35); }
+.tp-icon{ filter:drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+.tp-icon{ font-size:22px; }
+.tp-ord{ font-size:15px; font-weight:800; }
+.tp-sub{ font-size:7.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
+
+/* Style 4: stamp */
+.stamp{ border-radius:50%; width:68%; aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; transform:rotate(-8deg); border:2.5px solid; }
+.st-gold{ border-color:#c99400; color:#8a5b00; }
+.st-silver{ border-color:#8a8f98; color:#5b6478; }
+.st-bronze{ border-color:#b5762e; color:#7a3d10; }
+.st-grey{ border-color:#8a93a8; color:#5b6478; }
+.stamp .n{ font-size:18px; font-weight:900; line-height:1; }
+.stamp .t{ font-size:6.5px; font-weight:800; letter-spacing:0.06em; }
+
+footer{ margin-top:30px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Finish indicator on the board · full matrix</p>
+  <h1>All 4 outcomes, across all 4 styles</h1>
+  <p class="lede">Every style shown at 1st, 2nd, 3rd, and last place. Each corner keeps its own player-color outline (red/green/blue/yellow, as it would in a real game); only the badge inside changes to reflect the rank -- gold/silver/bronze, and a deliberately quieter grey treatment for last place rather than pretending they medaled. I used your word "Loser" as the label below each column since that's what you asked for, but happy to soften it to "Last" in the actual copy if you'd rather.</p>
+
+  <div class="style-block">
+    <div class="style-head"><h2>1 &middot; Medal + burst</h2><span>emoji medal on a soft starburst</span></div>
+    <div class="rank-row">
+      <div class="cell"><div class="corner p-red"><div class="mark m1-bg-gold gold"><span class="medal-emoji">&#129351;</span><span class="m1-tag">1st place</span></div></div><span class="cell-label">1st Winner</span></div>
+      <div class="cell"><div class="corner p-green"><div class="mark m1-bg-silver silver"><span class="medal-emoji">&#129352;</span><span class="m1-tag">2nd place</span></div></div><span class="cell-label">2nd Winner</span></div>
+      <div class="cell"><div class="corner p-blue"><div class="mark m1-bg-bronze bronze"><span class="medal-emoji">&#129353;</span><span class="m1-tag">3rd place</span></div></div><span class="cell-label">3rd Winner</span></div>
+      <div class="cell"><div class="corner p-yellow"><div class="mark m1-bg-grey grey"><span class="medal-emoji" style="filter:grayscale(1);opacity:0.6;">&#127942;</span><span class="m1-tag">last place</span></div></div><span class="cell-label">Loser</span></div>
+    </div>
+  </div>
+
+  <div class="style-block">
+    <div class="style-head"><h2>2 &middot; Ribbon banner</h2><span>diagonal sash across the corner</span></div>
+    <div class="rank-row">
+      <div class="cell"><div class="corner p-red"><div class="ribbon rb-gold">&#128081; 1ST PLACE</div></div><span class="cell-label">1st Winner</span></div>
+      <div class="cell"><div class="corner p-green"><div class="ribbon rb-silver">&#129352; 2ND PLACE</div></div><span class="cell-label">2nd Winner</span></div>
+      <div class="cell"><div class="corner p-blue"><div class="ribbon rb-bronze">&#129353; 3RD PLACE</div></div><span class="cell-label">3rd Winner</span></div>
+      <div class="cell"><div class="corner p-yellow"><div class="ribbon rb-grey">OUT</div></div><span class="cell-label">Loser</span></div>
+    </div>
+  </div>
+
+  <div class="style-block">
+    <div class="style-head"><h2>3 &middot; Trophy plate</h2><span>warm plate, icon + ordinal</span></div>
+    <div class="rank-row">
+      <div class="cell"><div class="corner p-red"><div class="m3-plate tp-gold gold"><span class="tp-icon">&#127942;</span><span class="tp-ord">1<sup style="font-size:8px;">st</sup></span><span class="tp-sub">finished</span></div></div><span class="cell-label">1st Winner</span></div>
+      <div class="cell"><div class="corner p-green"><div class="m3-plate tp-silver silver"><span class="tp-icon">&#127942;</span><span class="tp-ord">2<sup style="font-size:8px;">nd</sup></span><span class="tp-sub">finished</span></div></div><span class="cell-label">2nd Winner</span></div>
+      <div class="cell"><div class="corner p-blue"><div class="m3-plate tp-bronze bronze"><span class="tp-icon">&#127942;</span><span class="tp-ord">3<sup style="font-size:8px;">rd</sup></span><span class="tp-sub">finished</span></div></div><span class="cell-label">3rd Winner</span></div>
+      <div class="cell"><div class="corner p-yellow"><div class="m3-plate tp-grey grey"><span class="tp-icon" style="filter:grayscale(1);opacity:0.6;">&#128683;</span><span class="tp-ord">4<sup style="font-size:8px;">th</sup></span><span class="tp-sub">out</span></div></div><span class="cell-label">Loser</span></div>
+    </div>
+  </div>
+
+  <div class="style-block">
+    <div class="style-head"><h2>4 &middot; Podium stamp</h2><span>tilted circular seal</span></div>
+    <div class="rank-row">
+      <div class="cell"><div class="corner p-red"><div class="stamp st-gold"><span class="n">1<sup style="font-size:9px;">st</sup></span><span class="t">PLACE</span></div></div><span class="cell-label">1st Winner</span></div>
+      <div class="cell"><div class="corner p-green"><div class="stamp st-silver"><span class="n">2<sup style="font-size:9px;">nd</sup></span><span class="t">PLACE</span></div></div><span class="cell-label">2nd Winner</span></div>
+      <div class="cell"><div class="corner p-blue"><div class="stamp st-bronze"><span class="n">3<sup style="font-size:9px;">rd</sup></span><span class="t">PLACE</span></div></div><span class="cell-label">3rd Winner</span></div>
+      <div class="cell"><div class="corner p-yellow"><div class="stamp st-grey"><span class="n">4<sup style="font-size:9px;">th</sup></span><span class="t">OUT</span></div></div><span class="cell-label">Loser</span></div>
+    </div>
+  </div>
+
+  <footer>Mockup only -- nothing in the app has changed. Corner outline color = the player's own color (as on the real board); badge color = rank (gold/silver/bronze/grey).</footer>
+</div>
+</body>
+</html>

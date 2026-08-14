@@ -1,0 +1,196 @@
+<style>
+:root{
+  --page-bg:#faf7f0;
+  --page-bg-2:#f2ece0;
+  --ink:#232a3a;
+  --ink-dim:#5c6478;
+  --card-bg:#ffffff;
+  --border:#e2ddd0;
+  --accent:#2a3e66;
+  --accent-soft:#e8edf6;
+}
+:root[data-theme="dark"]{
+  --page-bg:#14171f;
+  --page-bg-2:#191d27;
+  --ink:#e7e9ef;
+  --ink-dim:#9aa1b4;
+  --card-bg:#1b1f2a;
+  --border:#2b3040;
+  --accent:#8fa8dd;
+  --accent-soft:#232c42;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page-bg:#14171f;
+    --page-bg-2:#191d27;
+    --ink:#e7e9ef;
+    --ink-dim:#9aa1b4;
+    --card-bg:#1b1f2a;
+    --border:#2b3040;
+    --accent:#8fa8dd;
+    --accent-soft:#232c42;
+  }
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:
+    radial-gradient(900px 420px at 15% -10%, var(--page-bg-2), transparent),
+    var(--page-bg);
+  color:var(--ink);
+  line-height:1.6;
+}
+
+.wrap{ max-width:760px; margin:0 auto; padding:56px 24px 96px; }
+
+header.top{ display:flex; align-items:center; gap:14px; margin-bottom:8px; }
+.mark{
+  width:40px; height:40px; border-radius:11px; flex:0 0 auto;
+  background:linear-gradient(155deg,#ffd166,#ff8a3d);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.18);
+  font-size:20px;
+}
+.brand{ font-size:15px; font-weight:700; color:var(--ink); }
+.brand .sub{ display:block; font-size:12px; font-weight:500; color:var(--ink-dim); margin-top:1px; }
+
+h1{
+  font-size:clamp(28px,4vw,38px);
+  line-height:1.15;
+  letter-spacing:-0.01em;
+  margin:34px 0 6px;
+  text-wrap:balance;
+}
+.effective{ font-size:13.5px; color:var(--ink-dim); margin:0 0 40px; }
+
+.lede{
+  font-size:17px;
+  color:var(--ink);
+  background:var(--accent-soft);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px 22px;
+  margin:0 0 44px;
+}
+.lede strong{ color:var(--accent); }
+
+nav.toc{
+  display:flex; flex-wrap:wrap; gap:8px 18px;
+  margin:0 0 48px; padding:0; list-style:none;
+  font-size:13px;
+}
+nav.toc a{ color:var(--ink-dim); text-decoration:none; border-bottom:1px solid transparent; }
+nav.toc a:hover, nav.toc a:focus-visible{ color:var(--accent); border-bottom-color:var(--accent); }
+
+section{ margin:0 0 40px; scroll-margin-top:24px; }
+section h2{
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin:0 0 14px;
+}
+section h3{ font-size:19px; margin:22px 0 8px; letter-spacing:-0.005em; }
+section p{ margin:0 0 14px; max-width:66ch; color:var(--ink); }
+section p.dim{ color:var(--ink-dim); font-size:14.5px; }
+section ul{ margin:0 0 14px; padding-left:20px; max-width:64ch; }
+section li{ margin:0 0 8px; }
+
+.data-table{
+  width:100%; border-collapse:collapse; margin:6px 0 18px;
+  font-size:14.5px;
+}
+.data-table th, .data-table td{
+  text-align:left; padding:10px 14px; border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+.data-table th{ font-weight:700; color:var(--ink-dim); font-size:12px; text-transform:uppercase; letter-spacing:0.04em; }
+.data-table td.status{ white-space:nowrap; font-weight:600; }
+.status.none{ color:#1c8a53; }
+
+.contact-card{
+  background:var(--card-bg); border:1px solid var(--border); border-radius:12px;
+  padding:22px 24px; display:flex; flex-direction:column; gap:4px;
+}
+.contact-card a{ color:var(--accent); text-decoration:none; font-weight:600; }
+.contact-card a:hover{ text-decoration:underline; }
+
+footer.bottom{
+  margin-top:56px; padding-top:20px; border-top:1px solid var(--border);
+  font-size:12.5px; color:var(--ink-dim);
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="mark">🎲</div>
+    <div class="brand">Ludo Nexus<span class="sub">by Synapta Labs</span></div>
+  </header>
+
+  <h1>Privacy Policy</h1>
+  <p class="effective">Effective August 14, 2026</p>
+
+  <p class="lede">The short version: <strong>Ludo Nexus doesn't collect, store, or transmit any of your personal data.</strong> The app works entirely offline, on your device, with no account, no analytics, and no ads.</p>
+
+  <nav class="toc">
+    <a href="#what-we-collect">What we collect</a>
+    <a href="#photos">Player photos</a>
+    <a href="#permissions">Permissions</a>
+    <a href="#children">Children</a>
+    <a href="#changes">Future changes</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <section id="what-we-collect">
+    <h2>What we collect</h2>
+    <h3>Nothing — by design</h3>
+    <p>Ludo Nexus is a local, pass-and-play board game. There's no login, no user accounts, no network connection required to play, and no data of any kind is sent anywhere. Everything that happens in a game — player names, whose turn it is, piece positions — exists only in the app's memory on your device while you're playing, and is discarded when the game ends.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Category</th><th>Collected?</th></tr></thead>
+      <tbody>
+        <tr><td>Name, email, or contact info</td><td class="status none">Not collected</td></tr>
+        <tr><td>Location</td><td class="status none">Not collected</td></tr>
+        <tr><td>Device or usage analytics</td><td class="status none">Not collected</td></tr>
+        <tr><td>Advertising identifiers</td><td class="status none">Not collected</td></tr>
+        <tr><td>Financial or payment info</td><td class="status none">Not collected</td></tr>
+        <tr><td>Photos (see below)</td><td class="status none">Stored locally only</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="photos">
+    <h2>Player photos</h2>
+    <p>If you choose to set a photo for a player (instead of the default colored token), the app saves that image inside its own private storage on your device, using it only to display that player's piece during the game. That photo is never uploaded, transmitted, or shared with anyone — including us. It stays on your device and is removed if you uninstall the app.</p>
+  </section>
+
+  <section id="permissions">
+    <h2>Permissions the app asks for</h2>
+    <p>Ludo Nexus may ask for camera or photo library access solely so you can pick a player's photo, as described above. It does not request access to contacts, location, microphone, or anything else, and doesn't use any permission it's granted for tracking or advertising purposes.</p>
+  </section>
+
+  <section id="children">
+    <h2>Children's privacy</h2>
+    <p>Ludo Nexus is a general-audience game suitable for all ages. Because the app collects no personal data from anyone, including children, there is nothing to disclose or protect beyond what's already described in this policy.</p>
+  </section>
+
+  <section id="changes">
+    <h2>If this ever changes</h2>
+    <p>If a future version of Ludo Nexus adds anything that changes this — for example, optional ads to support the app — this policy will be updated before that change ships, and the update will clearly describe what's new and why. Continuing to use the app after an update means you accept the revised policy; if you'd rather not, you're free to stop using the app or uninstall it at any time.</p>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <div class="contact-card">
+      <p class="dim" style="margin:0 0 10px;">Questions about this policy or the app's data practices:</p>
+      <a href="mailto:synaptalabs.dev@gmail.com">synaptalabs.dev@gmail.com</a>
+    </div>
+  </section>
+
+  <footer class="bottom">
+    Ludo Nexus is developed and published by Synapta Labs. This policy applies to the Ludo Nexus app available on Google Play.
+  </footer>
+</div>

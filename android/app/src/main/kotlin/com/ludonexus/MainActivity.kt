@@ -1,4 +1,4 @@
-package com.taxvault.ludo.ludo_app
+package com.ludonexus
 
 import io.flutter.embedding.android.FlutterActivity
 

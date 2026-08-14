@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>End-of-game flow — stay on the board</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-bg:#ffffff; --card-border:#d7dce6; --accent:#2a3e66;
+  --navy-top:#2a3e66; --navy-bottom:#162444; --watermark:rgba(110,140,195,0.35);
+  --phone-bezel:#0e1420;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 72px; }
+.wrap{ max-width:1180px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(24px,3vw,32px); margin:0 0 10px; letter-spacing:-0.01em; text-wrap:balance; }
+.lede{ font-size:15.5px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 16px; }
+.opinion{ background:var(--card-bg); border:1px solid var(--card-border); border-left:3px solid var(--accent); border-radius:10px; padding:18px 22px; margin:0 0 36px; max-width:82ch; }
+.opinion h2{ font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); margin:0 0 10px; font-weight:700; }
+.opinion p{ font-size:14.5px; line-height:1.65; margin:0 0 10px; }
+.opinion p:last-child{ margin-bottom:0; }
+
+.flow{ display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; }
+.frame{ display:flex; flex-direction:column; gap:12px; width:260px; }
+.frame-label{ font-size:13px; font-weight:700; }
+.frame-desc{ font-size:12px; line-height:1.5; color:var(--ink-dim); min-height:52px; }
+.arrow{ font-size:22px; color:var(--ink-dim); align-self:center; padding-top:90px; }
+
+.phone{ background:var(--phone-bezel); border-radius:24px; padding:9px; box-shadow:0 12px 26px rgba(0,0,0,0.2); }
+.screen{ border-radius:17px; overflow:hidden; background:linear-gradient(180deg,var(--navy-top),var(--navy-bottom)); position:relative; aspect-ratio:9/17.5; }
+.screen::after{ content:""; position:absolute; inset:0; pointer-events:none; background-image:radial-gradient(6px 6px at 15% 25%, var(--watermark) 40%, transparent 41%), radial-gradient(4px 4px at 80% 70%, var(--watermark) 40%, transparent 41%); opacity:0.5; }
+.statusbar{ height:16px; background:rgba(0,0,0,0.15); }
+.appbar{ height:30px; display:flex; align-items:center; padding:0 10px; position:relative; z-index:1; }
+.appbar span{ color:#fff; font-size:10.5px; font-weight:700; }
+.chiprow{ position:relative; z-index:1; display:flex; gap:4px; padding:6px 8px 2px; }
+.chip{ flex:1; height:18px; border-radius:10px; border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:7px; color:#fff; opacity:0.85; background:rgba(255,255,255,0.1); }
+.board{ margin:8px 12px; aspect-ratio:1; border-radius:6px; background:#eef1f6; position:relative; display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:1fr 1fr 1fr; overflow:hidden; }
+.home{ margin:6%; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:6px; font-weight:800; color:#fff; text-align:center; }
+.home.gold{ background:linear-gradient(160deg,#f2b218,#c98a00); }
+.home.silver{ background:linear-gradient(160deg,#5a96d5,#2f5f9b); }
+.home.bronze{ background:linear-gradient(160deg,#de6018,#a8420c); }
+.home.purple{ background:linear-gradient(160deg,#9369dc,#6a45b0); }
+.track{ background:repeating-linear-gradient(0deg, transparent 0 15.5%, rgba(0,0,0,0.06) 15.5% 17%), repeating-linear-gradient(90deg, transparent 0 15.5%, rgba(0,0,0,0.06) 15.5% 17%); }
+.center{ background: linear-gradient(135deg, #e53935 0 50%, transparent 0) 0 0/50% 50% no-repeat, linear-gradient(-45deg, #0fb85a 0 50%, transparent 0) 100% 0/50% 50% no-repeat, linear-gradient(45deg, #0aa8e8 0 50%, transparent 0) 0 100%/50% 50% no-repeat, linear-gradient(-135deg, #ffd400 0 50%, transparent 0) 100% 100%/50% 50% no-repeat; }
+.pill{ position:relative; z-index:1; margin:8px 10px 10px; padding:8px; border-radius:14px; text-align:center; font-size:8.5px; font-weight:700; color:#fff; background:#2a3e66; }
+.pill.action{ background:#3a5686; }
+.dialog{ position:absolute; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; z-index:5; }
+.dialog-card{ background:#fff; color:#1b2333; border-radius:10px; padding:12px 10px; width:82%; }
+.dialog-card h3{ font-size:10px; margin:0 0 8px; text-align:center; }
+.rank-row{ display:flex; align-items:center; gap:6px; font-size:8px; padding:3px 0; }
+.rank-num{ font-weight:800; width:14px; }
+.rank-dot{ width:8px; height:8px; border-radius:50%; }
+.dialog-btn{ margin-top:8px; background:#2a3e66; color:#fff; text-align:center; font-size:8px; font-weight:700; padding:6px; border-radius:8px; }
+.badge{ position:absolute; top:8px; right:8px; background:#c0392b; color:#fff; font-size:7px; font-weight:800; padding:2px 6px; border-radius:10px; z-index:6; }
+
+footer{ margin-top:44px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">End-of-game flow · POC, not implemented</p>
+  <h1>Stay on the finished board instead of auto-popping a dialog</h1>
+  <p class="lede">Right now, the instant the match ends, a modal "Game over!" dialog covers the board automatically. You want the board itself to stay visible (with everyone's rank cards showing) -- the player chooses when to see results or leave, instead of it being forced on them.</p>
+
+  <div class="opinion">
+    <h2>Proposed change</h2>
+    <p>When the match ends, no dialog pops up automatically. The bottom status pill (which currently shows things like "Red's turn continues...") instead becomes a tappable action button reading <strong>"Game over -- tap to see final standings"</strong>. The board stays fully visible behind it, showing every finished player's rank card. Tapping the pill opens the same standings dialog as before (Play Again / Back to Setup).</p>
+  </div>
+
+  <div class="flow">
+    <div class="frame">
+      <span class="frame-label">1 · Match ends</span>
+      <p class="frame-desc">Last placement lands. Board shows all 4 rank cards. No popup yet.</p>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"></div>
+        <div class="appbar"><span>Ludo Nexus</span></div>
+        <div class="chiprow"><div class="chip">Red</div><div class="chip">Green</div><div class="chip">Yellow</div><div class="chip">Blue</div></div>
+        <div class="board">
+          <div class="home gold">1ST</div><div class="track"></div><div class="home silver">2ND</div>
+          <div class="track"></div><div class="center"></div><div class="track"></div>
+          <div class="home purple">LAST</div><div class="track"></div><div class="home bronze">3RD</div>
+        </div>
+        <div class="pill action">Game over -- tap to see final standings</div>
+      </div></div>
+    </div>
+
+    <div class="arrow">&rarr;</div>
+
+    <div class="frame">
+      <span class="frame-label">2 · Player taps the pill</span>
+      <p class="frame-desc">Only now does the standings dialog appear, on top of the still-visible board.</p>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"></div>
+        <div class="appbar"><span>Ludo Nexus</span></div>
+        <div class="chiprow"><div class="chip">Red</div><div class="chip">Green</div><div class="chip">Yellow</div><div class="chip">Blue</div></div>
+        <div class="board">
+          <div class="home gold">1ST</div><div class="track"></div><div class="home silver">2ND</div>
+          <div class="track"></div><div class="center"></div><div class="track"></div>
+          <div class="home purple">LAST</div><div class="track"></div><div class="home bronze">3RD</div>
+        </div>
+        <div class="dialog">
+          <div class="dialog-card">
+            <h3>Game over!</h3>
+            <div class="rank-row"><span class="rank-num">1</span><span class="rank-dot" style="background:#f2b218"></span>Red</div>
+            <div class="rank-row"><span class="rank-num">2</span><span class="rank-dot" style="background:#5a96d5"></span>Green</div>
+            <div class="rank-row"><span class="rank-num">3</span><span class="rank-dot" style="background:#de6018"></span>Yellow</div>
+            <div class="rank-row"><span class="rank-num">4</span><span class="rank-dot" style="background:#9369dc"></span>Blue</div>
+            <div class="dialog-btn">Play Again</div>
+          </div>
+        </div>
+        <div class="pill action">Game over -- tap to see final standings</div>
+      </div></div>
+    </div>
+  </div>
+
+  <footer>Mockup only -- nothing in the app has changed. The dialog itself (rankings + Play Again / Back to Setup) is unchanged from what's already built; only when it appears changes.</footer>
+</div>
+</body>
+</html>

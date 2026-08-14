@@ -143,6 +143,10 @@ class BoardPainter extends CustomPainter {
     }
   }
 
+  /// A small colored arrow on each color's own final shared-track cell,
+  /// pointing toward that color's home stretch -- marking exactly where a
+  /// piece turns inward off the shared loop, rather than leaving that
+  /// implicit.
   /// A small 4-point compass-rose star marking a safe cell, in place of a
   /// plain dot -- a classic Ludo-board decoration.
   void _paintCompassMarker(Canvas canvas, Offset center, double outerRadius) {

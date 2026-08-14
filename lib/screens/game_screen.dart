@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../game/ai_bot.dart';
-import '../game/dice_roller.dart';
 import '../game/ludo_engine.dart';
 import '../models/bot_difficulty.dart';
 import '../models/piece.dart';
-import '../models/player.dart';
+import '../models/player_color.dart';
+import '../services/capture_sound.dart';
 import '../services/click_sound.dart';
+import '../services/dice_roll_sound.dart';
+import '../widgets/app_background.dart';
 import '../widgets/board_widget.dart';
 import '../widgets/dice_widget.dart';
-import '../widgets/ludo_colors.dart';
-import '../widgets/piece_avatar.dart';
 import '../widgets/player_chips_row.dart';
 
 class GameScreen extends StatefulWidget {
@@ -37,7 +37,22 @@ class _GameScreenState extends State<GameScreen> {
     engine = widget.engine;
     _statusText = '${engine.currentPlayer.name}, roll to start!';
     ClickSound.preload();
+    DiceRollSound.preload();
+    CaptureSound.preload();
     _afterTurnAdvance();
+  }
+
+  static String _ordinal(int n) {
+    switch (n) {
+      case 1:
+        return '1st';
+      case 2:
+        return '2nd';
+      case 3:
+        return '3rd';
+      default:
+        return '${n}th';
+    }
   }
 
   bool get _canHumanRoll =>
@@ -45,10 +60,14 @@ class _GameScreenState extends State<GameScreen> {
 
   /// Spins the dice face through random values briefly before actually
   /// rolling, so the roll is something the player visibly watches happen
-  /// rather than a number just appearing.
+  /// rather than a number just appearing. Plays the dice-in-a-bowl rattle
+  /// once for the whole spin -- a distinct sound from the single click used
+  /// per step when a piece moves, rather than reusing that same click here.
   Future<int> _rollWithAnimation() async {
     setState(() => _diceSpinning = true);
-    await Future.delayed(const Duration(milliseconds: 550));
+    const spinDuration = Duration(milliseconds: DiceRollSound.durationMs);
+    DiceRollSound.play();
+    await Future.delayed(spinDuration);
     final value = engine.rollDice();
     if (mounted) setState(() => _diceSpinning = false);
     return value;
@@ -63,7 +82,7 @@ class _GameScreenState extends State<GameScreen> {
     if (!mounted) return;
 
     if (engine.mustForfeitTurn) {
-      setState(() => _statusText = '${mover.name} rolled three 6s in a row -- turn forfeited!');
+      setState(() => _statusText = "${mover.name}'s bonus streak hit three -- turn forfeited!");
       await Future.delayed(const Duration(milliseconds: 900));
       engine.skipTurn();
       setState(() => _busy = false);
@@ -83,6 +102,10 @@ class _GameScreenState extends State<GameScreen> {
 
     if (movable.length == 1) {
       setState(() => _statusText = '${mover.name} rolled a $value.');
+      // A clear gap before the move's click sounds start, so they don't
+      // read as a continuation of the dice-roll sound that just finished.
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (!mounted) return;
       await _applyMove(movable.first, value, mover.name);
       return;
     }
@@ -143,23 +166,38 @@ class _GameScreenState extends State<GameScreen> {
     await _walkPiece(piece, diceValue);
     if (!mounted) return;
     final result = engine.movePiece(piece, diceValue);
+    if (result.capturedPieces.isNotEmpty) CaptureSound.play();
+    final bonusGranted = !result.wonGame && engine.currentPlayer.color == piece.color;
     setState(() {
       _walkingPiece = null;
       _walkingFraction = null;
-      if (result.capturedPieces.isNotEmpty) {
-        _statusText = '$moverName captured ${result.capturedPieces.length} piece(s)!';
+      String message;
+      if (result.justFinishedPlayer != null) {
+        message = '$moverName finished ${_ordinal(result.justFinishedRank!)}!';
+      } else if (result.capturedPieces.isNotEmpty) {
+        message = '$moverName captured ${result.capturedPieces.length} piece(s)!';
       } else if (result.finishedPiece) {
-        _statusText = '$moverName got a piece home!';
+        message = '$moverName got a piece home!';
       } else {
-        _statusText = "$moverName's turn continues...";
+        message = '$moverName moved.';
       }
+      _statusText = bonusGranted ? '$message Go again!' : message;
     });
-    await Future.delayed(const Duration(milliseconds: 400));
+    // A finish (someone completing all 4 pieces) gets a much longer pause
+    // than an ordinary move -- long enough to actually read the "finished
+    // Nth!" banner and see their rank card land on the board, rather than
+    // it flashing by mid-sequence when bots are playing back to back.
+    final pause = result.justFinishedPlayer != null
+        ? const Duration(milliseconds: 1800)
+        : const Duration(milliseconds: 400);
+    await Future.delayed(pause);
     if (!mounted) return;
     setState(() => _busy = false);
 
     if (result.wonGame) {
-      _showWinDialog();
+      // No popup -- the board stays on screen exactly as it is, showing
+      // every player's rank card, for as long as the players want to look
+      // at it. See the bottom pill in build() for how they leave.
       return;
     }
     _afterTurnAdvance();
@@ -186,7 +224,7 @@ class _GameScreenState extends State<GameScreen> {
     if (!mounted) return;
 
     if (engine.mustForfeitTurn) {
-      setState(() => _statusText = '${bot.name} rolled three 6s -- turn forfeited!');
+      setState(() => _statusText = "${bot.name}'s bonus streak hit three -- turn forfeited!");
       await Future.delayed(const Duration(milliseconds: 700));
       engine.skipTurn();
       setState(() => _busy = false);
@@ -208,95 +246,37 @@ class _GameScreenState extends State<GameScreen> {
     await _walkPiece(piece, value);
     if (!mounted) return;
     final result = engine.movePiece(piece, value);
+    if (result.capturedPieces.isNotEmpty) CaptureSound.play();
+    final bonusGranted = !result.wonGame && engine.currentPlayer.color == piece.color;
     setState(() {
       _walkingPiece = null;
       _walkingFraction = null;
-      if (result.capturedPieces.isNotEmpty) {
-        _statusText = '${bot.name} captured a piece!';
+      String message;
+      if (result.justFinishedPlayer != null) {
+        message = '${bot.name} finished ${_ordinal(result.justFinishedRank!)}!';
+      } else if (result.capturedPieces.isNotEmpty) {
+        message = '${bot.name} captured a piece!';
       } else if (result.finishedPiece) {
-        _statusText = '${bot.name} got a piece home!';
+        message = '${bot.name} got a piece home!';
       } else {
-        _statusText = '${bot.name} moved.';
+        message = '${bot.name} moved.';
       }
+      _statusText = bonusGranted ? '$message Go again!' : message;
     });
-    await Future.delayed(const Duration(milliseconds: 500));
+    final pause = result.justFinishedPlayer != null
+        ? const Duration(milliseconds: 1800)
+        : const Duration(milliseconds: 500);
+    await Future.delayed(pause);
     if (!mounted) return;
     setState(() => _busy = false);
 
     if (result.wonGame) {
-      _showWinDialog();
+      // No popup -- the board stays on screen exactly as it is, showing
+      // every player's rank card, for as long as the players want to look
+      // at it. See the bottom pill in build() for how they leave.
       return;
     }
     _afterTurnAdvance();
-  }
-
-  void _showWinDialog() {
-    final winner = engine.winner!;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('We have a winner!'),
-        content: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            PieceAvatar(
-              color: winner.color,
-              size: 56,
-              photoPath: winner.photoPath,
-              initial: winner.name.isNotEmpty ? winner.name[0].toUpperCase() : '?',
-              isBot: winner.isBot,
-            ),
-            const SizedBox(width: 16),
-            Expanded(child: Text('${winner.name} wins the game!')),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Back to Setup'),
-          ),
-          FilledButton(onPressed: _replay, child: const Text('Play Again')),
-        ],
-      ),
-    );
-  }
-
-  void _replay() {
-    Navigator.of(context).pop();
-    final freshPlayers = [
-      for (final p in engine.players)
-        LudoPlayer(
-          color: p.color,
-          name: p.name,
-          isBot: p.isBot,
-          botDifficulty: p.botDifficulty,
-          photoPath: p.photoPath,
-        ),
-    ];
-    setState(() {
-      engine = LudoEngine(players: freshPlayers);
-      _movable = [];
-      _busy = false;
-      _statusText = '${engine.currentPlayer.name}, roll to start!';
-    });
-    _afterTurnAdvance();
-  }
-
-  void _showRollHistory() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Roll History'),
-        content: SizedBox(width: double.maxFinite, child: _RollHistoryPanel(dice: engine.dice)),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
-        ],
-      ),
-    );
   }
 
   @override
@@ -305,121 +285,74 @@ class _GameScreenState extends State<GameScreen> {
     final movableKeys = {
       for (final p in _movable) BoardWidget.pieceKey(p.color, p.id),
     };
+    final finishedRanks = <PlayerColor, int>{
+      for (var i = 0; i < engine.finishOrder.length; i++) engine.finishOrder[i].color: i + 1,
+    };
+    final gameOver = engine.gameOver;
+    final bottomText = gameOver
+        ? '🏆 ${engine.finishOrder.first.name} won! Tap to go back to setup'
+        : (_statusText.isEmpty ? 'Tap your dice to roll' : _statusText);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ludo'),
-        backgroundColor: current.color.material,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            tooltip: 'Roll history',
-            onPressed: _showRollHistory,
-          ),
-        ],
+        title: const Text('Ludo Nexus'),
+        backgroundColor: const Color(0xFF2A3E66),
+        foregroundColor: Colors.white,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            PlayerChipsRow(players: engine.players, activeColor: current.color),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Center(
-                  child: BoardWidget(
-                    players: engine.players,
-                    movablePieceKeys: movableKeys,
-                    onPieceTap: _onPieceTap,
-                    activeColor: current.color,
-                    walkingPiece: _walkingPiece,
-                    walkingFraction: _walkingFraction,
-                    diceBuilder: (size) => GestureDetector(
-                      onTap: _canHumanRoll ? _rollForHuman : null,
-                      child: DiceWidget(value: engine.lastRoll, rolling: _diceSpinning, size: size),
+      body: AppBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              PlayerChipsRow(players: engine.players, activeColor: current.color),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Center(
+                    child: BoardWidget(
+                      players: engine.players,
+                      movablePieceKeys: movableKeys,
+                      onPieceTap: _onPieceTap,
+                      activeColor: current.color,
+                      finishedRanks: finishedRanks,
+                      walkingPiece: _walkingPiece,
+                      walkingFraction: _walkingFraction,
+                      diceBuilder: (size) => GestureDetector(
+                        onTap: _canHumanRoll ? _rollForHuman : null,
+                        child: DiceWidget(value: engine.lastRoll, rolling: _diceSpinning, size: size),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-              child: Text(
-                _statusText.isEmpty ? 'Tap your dice to roll' : _statusText,
-                style: const TextStyle(fontSize: 13),
-                textAlign: TextAlign.center,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GestureDetector(
+                    onTap: gameOver ? () => Navigator.of(context).pop() : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          bottomText,
+                          maxLines: 1,
+                          style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// A roll log + per-face frequency count -- the transparent "provably
-/// fair" trust feature backing DiceRoller, shown on demand via the app
-/// bar's history icon rather than as a permanent on-screen panel.
-class _RollHistoryPanel extends StatelessWidget {
-  final DiceRoller dice;
-
-  const _RollHistoryPanel({required this.dice});
-
-  @override
-  Widget build(BuildContext context) {
-    final freq = dice.frequency;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.bar_chart, size: 16),
-              SizedBox(width: 6),
-              Text('Roll history (fair dice -- nothing hidden)',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          SizedBox(
-            height: 26,
-            child: dice.history.isEmpty
-                ? const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('No rolls yet.', style: TextStyle(fontSize: 12)),
-                  )
-                : ListView(
-                    scrollDirection: Axis.horizontal,
-                    reverse: true,
-                    children: [
-                      for (final v in dice.history.reversed.take(40))
-                        Container(
-                          width: 22,
-                          height: 22,
-                          margin: const EdgeInsets.only(right: 4),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.black87,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text('$v', style: const TextStyle(color: Colors.white, fontSize: 12)),
-                        ),
-                    ],
-                  ),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 12,
-            children: [
-              for (final face in [1, 2, 3, 4, 5, 6]) Text('$face ×${freq[face]}', style: const TextStyle(fontSize: 11)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -7,6 +7,7 @@ import '../models/player.dart';
 import '../models/player_color.dart';
 import '../services/avatar_storage.dart';
 import '../services/player_profile_store.dart';
+import '../widgets/app_background.dart';
 import '../widgets/ludo_colors.dart';
 import '../widgets/piece_avatar.dart';
 import 'game_screen.dart';
@@ -119,54 +120,61 @@ class _SetupScreenState extends State<SetupScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('New Game')),
-      body: _loadingProfiles
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      const Text('Players', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 16),
-                      SegmentedButton<int>(
-                        segments: const [
-                          ButtonSegment(value: 2, label: Text('2')),
-                          ButtonSegment(value: 3, label: Text('3')),
-                          ButtonSegment(value: 4, label: Text('4')),
+      body: AppBackground(
+        child: SafeArea(
+          child: _loadingProfiles
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          SegmentedButton<int>(
+                            segments: const [
+                              ButtonSegment(value: 2, label: Text('2')),
+                              ButtonSegment(value: 3, label: Text('3')),
+                              ButtonSegment(value: 4, label: Text('4')),
+                            ],
+                            selected: {_playerCount},
+                            onSelectionChanged: (s) => setState(() => _playerCount = s.first),
+                            style: ButtonStyle(
+                              foregroundColor: WidgetStateProperty.resolveWith(
+                                (states) => states.contains(WidgetState.selected) ? Colors.black : Colors.white,
+                              ),
+                            ),
+                          ),
                         ],
-                        selected: {_playerCount},
-                        onSelectionChanged: (s) => setState(() => _playerCount = s.first),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: activeSlots.length,
-                    itemBuilder: (context, index) => _SlotCard(
-                      slot: activeSlots[index],
-                      onPickPhoto: () => _pickPhoto(activeSlots[index]),
-                      onChanged: () => setState(() {}),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _startGame,
-                      child: const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Text('Start Game', style: TextStyle(fontSize: 16)),
                       ),
                     ),
-                  ),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: activeSlots.length,
+                        itemBuilder: (context, index) => _SlotCard(
+                          slot: activeSlots[index],
+                          onPickPhoto: () => _pickPhoto(activeSlots[index]),
+                          onChanged: () => setState(() {}),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: _startGame,
+                          child: const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text('Start Game', style: TextStyle(fontSize: 16)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+        ),
+      ),
     );
   }
 }
@@ -180,8 +188,24 @@ class _SlotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFC7E0FA), Color(0xFF8FBEF0)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF143264).withValues(alpha: 0.18),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(

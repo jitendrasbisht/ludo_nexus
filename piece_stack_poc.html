@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Piece stacking on a shared cell — options</title>
+<style>
+:root{
+  --page-bg:#eef1f6;
+  --page-bg-2:#e2e7f0;
+  --ink:#1b2333;
+  --ink-dim:#5b6478;
+  --card-bg:#ffffff;
+  --card-border:#d7dce6;
+  --accent:#2a3e66;
+  --cell-bg:#f7ecd3;
+  --cell-line:rgba(0,0,0,0.08);
+}
+:root[data-theme="dark"]{
+  --page-bg:#12151c;
+  --page-bg-2:#171b24;
+  --ink:#e8ebf2;
+  --ink-dim:#9aa3b8;
+  --card-bg:#1a1f2b;
+  --card-border:#2b3244;
+  --accent:#7fa0e0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page-bg:#12151c;
+    --page-bg-2:#171b24;
+    --ink:#e8ebf2;
+    --ink-dim:#9aa3b8;
+    --card-bg:#1a1f2b;
+    --card-border:#2b3244;
+    --accent:#7fa0e0;
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg);
+  color:var(--ink);
+  padding:40px 28px 72px;
+}
+.wrap{ max-width:1180px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(24px,3vw,32px); margin:0 0 10px; letter-spacing:-0.01em; text-wrap:balance; }
+.lede{ font-size:15.5px; line-height:1.6; color:var(--ink-dim); max-width:72ch; margin:0 0 16px; }
+
+.opinion{
+  background:var(--card-bg); border:1px solid var(--card-border); border-left:3px solid var(--accent);
+  border-radius:10px; padding:18px 22px; margin:0 0 36px; max-width:80ch;
+}
+.opinion h2{ font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); margin:0 0 10px; font-weight:700; }
+.opinion p{ font-size:14.5px; line-height:1.65; margin:0 0 10px; }
+.opinion p:last-child{ margin-bottom:0; }
+.rec-tag{ display:inline-block; font-size:11.5px; font-weight:700; background:var(--accent); color:#fff; padding:2px 9px; border-radius:20px; margin-right:8px; }
+
+.section-title{ font-size:14px; font-weight:700; margin:36px 0 14px; }
+
+.grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:22px; }
+@media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
+
+.option{
+  background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px;
+  padding:18px 18px 20px; display:flex; flex-direction:column; gap:14px;
+}
+.option-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.option-label{ font-size:13.5px; font-weight:700; }
+.badge{ font-size:10.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding:2px 9px; border-radius:20px; background:var(--accent); color:#fff; }
+.badge.muted{ background:var(--ink-dim); }
+.desc{ font-size:12.5px; line-height:1.55; color:var(--ink-dim); margin:0; }
+
+.cells{ display:flex; gap:14px; justify-content:space-between; }
+.cell-slot{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
+.cell{
+  width:100%; aspect-ratio:1; border-radius:10px; background:var(--cell-bg);
+  border:1px solid var(--cell-line); position:relative; overflow:visible;
+}
+.cell-slot span{ font-size:10.5px; color:var(--ink-dim); font-weight:600; }
+
+footer{ margin-top:44px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Piece stacking · POC, not implemented</p>
+  <h1>When 2+ pieces share a cell: spread apart, or stack on top of each other?</h1>
+  <p class="lede">Right now (Option A), pieces sharing a cell nudge into a 2×2 quadrant pattern so up to 4 stay visible side by side. You asked whether they could instead sit on top of each other — here's what that looks like, at 2, 3, and 4 pieces on one cell.</p>
+
+  <div class="opinion">
+    <h2>Opinion</h2>
+    <p><span class="rec-tag">Recommended</span><strong>Keep the current side-by-side spread (Option A) as the default</strong>, but it's a reasonable question — full overlap has one real advantage worth knowing about: at small board-cell sizes on a phone, 4 pieces spread into quadrants can each shrink to a sliver that's hard to tap accurately. Stacking keeps every piece full-size and tappable, at the cost of hiding how many are actually there unless you add a count badge or let players tap through the stack.</p>
+    <p>Option C (cascade) is the best middle ground if you want to change it: pieces stay full-size and it's visually obvious more than one is there, without needing a separate badge or tap-to-cycle interaction.</p>
+  </div>
+
+  <div class="grid">
+    <div class="option">
+      <div class="option-head"><span class="option-label">A · Quadrant spread</span><span class="badge muted">Current</span></div>
+      <p class="desc">Each piece nudges into its own quarter of the cell. All fully visible and independently tappable, but each one shrinks as more join.</p>
+      <div class="cells">
+        <div class="cell-slot"><div class="cell" id="a2"></div><span>2 pieces</span></div>
+        <div class="cell-slot"><div class="cell" id="a3"></div><span>3 pieces</span></div>
+        <div class="cell-slot"><div class="cell" id="a4"></div><span>4 pieces</span></div>
+      </div>
+    </div>
+
+    <div class="option">
+      <div class="option-head"><span class="option-label">B · Full overlap + count</span><span class="badge">New</span></div>
+      <p class="desc">Pieces sit dead-center on top of each other, full size. A small badge shows how many are stacked. Tapping would need to cycle through or open a picker.</p>
+      <div class="cells">
+        <div class="cell-slot"><div class="cell" id="b2"></div><span>2 pieces</span></div>
+        <div class="cell-slot"><div class="cell" id="b3"></div><span>3 pieces</span></div>
+        <div class="cell-slot"><div class="cell" id="b4"></div><span>4 pieces</span></div>
+      </div>
+    </div>
+
+    <div class="option">
+      <div class="option-head"><span class="option-label">C · Cascade stack</span><span class="badge">New</span></div>
+      <p class="desc">Pieces overlap with a small diagonal step, like a fanned stack of coins. Every piece stays full-size and every color peeks out enough to identify and tap.</p>
+      <div class="cells">
+        <div class="cell-slot"><div class="cell" id="c2"></div><span>2 pieces</span></div>
+        <div class="cell-slot"><div class="cell" id="c3"></div><span>3 pieces</span></div>
+        <div class="cell-slot"><div class="cell" id="c4"></div><span>4 pieces</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-title">Zoomed in: Option B with all 4 different colors on one cell</p>
+  <p class="lede" style="margin-bottom:22px;">Since Option B stacks dead-center, only the topmost piece is ever visible — here's exactly what that looks like blown up, plus a variant that leaves a thin sliver of each hidden color peeking out from behind, so you can judge whether fully hiding the other 3 is OK or whether a hint is worth keeping.</p>
+
+  <div class="grid" style="grid-template-columns:repeat(2,minmax(240px,1fr)); max-width:640px;">
+    <div class="option">
+      <div class="option-head"><span class="option-label">B · Fully hidden</span><span class="badge">Only top piece visible</span></div>
+      <p class="desc">Red landed there last, so red sits on top. Green, yellow, and blue are completely hidden underneath — only the "×4" badge tells you they're there.</p>
+      <div class="cells" style="justify-content:center;">
+        <div class="cell-slot" style="max-width:220px;"><div class="cell" id="b4big"></div><span>All 4 colors, dead-center stack</span></div>
+      </div>
+    </div>
+    <div class="option">
+      <div class="option-head"><span class="option-label">B2 · Thin peek variant</span><span class="badge">Alternative</span></div>
+      <p class="desc">Same dead-center stack, but each hidden piece is nudged a couple pixels so a thin rim of its color still shows — you can tell all 4 colors are present without them spreading apart.</p>
+      <div class="cells" style="justify-content:center;">
+        <div class="cell-slot" style="max-width:220px;"><div class="cell" id="b4peek"></div><span>All 4 colors, thin-peek stack</span></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Mockup only — nothing in the app has changed. Piece art reuses the same glossy-token gradient style as the in-app pieces.</footer>
+</div>
+
+<template id="defs">
+<svg xmlns="http://www.w3.org/2000/svg"><defs>
+  <radialGradient id="pawnRed" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="#ff8a7a"/><stop offset="55%" stop-color="#ec3b2e"/><stop offset="100%" stop-color="#a81208"/></radialGradient>
+  <radialGradient id="pawnGreen" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="#5cf0a0"/><stop offset="55%" stop-color="#0fb85a"/><stop offset="100%" stop-color="#046b32"/></radialGradient>
+  <radialGradient id="pawnYellow" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="#fff6b0"/><stop offset="55%" stop-color="#ffd400"/><stop offset="100%" stop-color="#c79600"/></radialGradient>
+  <radialGradient id="pawnBlue" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="#8fe3ff"/><stop offset="55%" stop-color="#0aa8e8"/><stop offset="100%" stop-color="#03567f"/></radialGradient>
+</defs></svg>
+</template>
+
+<script>
+const defsSvg = document.getElementById('defs').content.querySelector('svg').innerHTML;
+const COLORS = ['pawnRed','pawnGreen','pawnYellow','pawnBlue'];
+
+function pawnPath(fill, scale, extraShadow){
+  // Matches the real in-app token: a plain glossy circle (see
+  // assets/pieces/*.png / PieceAvatar), not a pawn silhouette.
+  const shadow = extraShadow ? `<ellipse cx="1" cy="15.5" rx="14" ry="4" fill="#000" opacity="0.25"/>` : '';
+  const r = 13.5;
+  return `
+  <g transform="scale(${scale})">
+    ${shadow}
+    <circle cx="0" cy="0" r="${r}" fill="url(#${fill})" stroke="rgba(0,0,0,0.18)" stroke-width="0.8"/>
+    <ellipse cx="-4.5" cy="-5.5" rx="4.2" ry="2.8" fill="#fff" opacity="0.6"/>
+  </g>`;
+}
+
+function svgCell(pieces){
+  // pieces: array of {fill, x, y, scale, shadow}
+  let inner = '';
+  for (const p of pieces){
+    inner += `<g transform="translate(${p.x} ${p.y})">${pawnPath(p.fill, p.scale || 1, p.shadow)}</g>`;
+  }
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">${defsSvg}${inner}</svg>`;
+}
+
+function badge(n){
+  return `<div style="position:absolute; top:4%; right:4%; background:#1b2333; color:#fff; font-size:11px; font-weight:700; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3);">${n}</div>`;
+}
+
+// --- A: quadrant spread ---
+const quad = (n) => {
+  const offs = [[-16,-16],[16,-16],[-16,16],[16,16]];
+  const pieces = [];
+  for (let i=0;i<n;i++){
+    pieces.push({fill: COLORS[i], x: 50+offs[i][0], y: 50+offs[i][1], scale: 0.85, shadow:true});
+  }
+  return svgCell(pieces);
+};
+document.getElementById('a2').innerHTML = quad(2);
+document.getElementById('a3').innerHTML = quad(3);
+document.getElementById('a4').innerHTML = quad(4);
+
+// --- B: full overlap ---
+const overlap = (n) => {
+  const pieces = [];
+  for (let i=0;i<n;i++){
+    pieces.push({fill: COLORS[i], x:50, y:50, scale: 1.25, shadow: i===n-1});
+  }
+  return svgCell(pieces) ;
+};
+document.getElementById('b2').innerHTML = '<div style="position:relative;width:100%;height:100%;">' + overlap(2) + badge(2) + '</div>';
+document.getElementById('b3').innerHTML = '<div style="position:relative;width:100%;height:100%;">' + overlap(3) + badge(3) + '</div>';
+document.getElementById('b4').innerHTML = '<div style="position:relative;width:100%;height:100%;">' + overlap(4) + badge(4) + '</div>';
+
+// --- C: cascade ---
+const cascade = (n) => {
+  const step = 11;
+  const start = -((n-1)*step)/2;
+  const pieces = [];
+  for (let i=0;i<n;i++){
+    pieces.push({fill: COLORS[i], x: 50+start+i*step, y: 50+start+i*step, scale: 1.1, shadow:true});
+  }
+  return svgCell(pieces);
+};
+document.getElementById('c2').innerHTML = cascade(2);
+document.getElementById('c3').innerHTML = cascade(3);
+document.getElementById('c4').innerHTML = cascade(4);
+
+// --- B, zoomed: all 4 colors, fully hidden dead-center ---
+document.getElementById('b4big').innerHTML =
+  '<div style="position:relative;width:100%;height:100%;">' + overlap(4) + badge(4) + '</div>';
+
+// --- B2: thin peek variant -- tiny per-piece nudge so a rim of each color shows ---
+const peekStack = (n) => {
+  const step = 4.5; // small enough to stay visually "on top of", not spread
+  const start = -((n-1)*step)/2;
+  const pieces = [];
+  for (let i=0;i<n;i++){
+    pieces.push({fill: COLORS[i], x: 50+start+i*step, y: 50+start+i*step, scale: 1.15, shadow: i===n-1});
+  }
+  return svgCell(pieces);
+};
+document.getElementById('b4peek').innerHTML =
+  '<div style="position:relative;width:100%;height:100%;">' + peekStack(4) + badge(4) + '</div>';
+</script>
+</body>
+</html>

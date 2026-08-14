@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../models/player_color.dart';
-import 'ludo_colors.dart';
 
-/// A single square token: the player's photo cropped to a rounded square
-/// with a colored ring, or a colored square with their initial when no
-/// photo was chosen. Bots always show a robot glyph and never a photo.
+/// A glossy 3D game token (per-color PNG asset) with the player's photo,
+/// a bot glyph, or their initial overlaid on top when relevant. Occupies
+/// exactly a [size] x [size] box so swapping the flat-square look for this
+/// token never shifts anything positioned around it.
 class PieceAvatar extends StatelessWidget {
   final PlayerColor color;
   final double size;
@@ -28,45 +28,40 @@ class PieceAvatar extends StatelessWidget {
     this.onTap,
   });
 
+  static const Map<PlayerColor, String> _tokenAssets = {
+    PlayerColor.red: 'assets/pieces/red.png',
+    PlayerColor.green: 'assets/pieces/green.png',
+    PlayerColor.yellow: 'assets/pieces/yellow.png',
+    PlayerColor.blue: 'assets/pieces/blue.png',
+  };
+
   @override
   Widget build(BuildContext context) {
-    final ring = color.material;
-    // Bright fills (yellow) need dark text/icon for contrast instead of
-    // the white that works on every other, darker player color.
-    final onRing = ring.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
+    // The badge (photo/bot/initial) sits on the token's flat top face,
+    // which the generator draws at roughly 68% of the full canvas.
+    final badgeSize = size * 0.62;
+    // Yellow's fill is too bright for white glyphs to read against --
+    // every other color is dark enough for white to hold contrast.
+    final onToken = color == PlayerColor.yellow ? Colors.black87 : Colors.white;
+    final glyphShadow = color == PlayerColor.yellow
+        ? const Shadow(color: Colors.white70, blurRadius: 3)
+        : const Shadow(color: Colors.black54, blurRadius: 3);
 
-    // A glossy radial shade (light highlight toward the upper-left, darker
-    // toward the edge) so the flat fallback token reads more like a
-    // rounded piece than a solid color swatch.
-    final glossyFill = BoxDecoration(
-      gradient: RadialGradient(
-        center: const Alignment(-0.3, -0.35),
-        radius: 1.0,
-        colors: [Color.lerp(ring, Colors.white, 0.35)!, ring, Color.lerp(ring, Colors.black, 0.18)!],
-        stops: const [0.0, 0.55, 1.0],
-      ),
-    );
-
-    Widget inner;
+    Widget? badge;
     if (!isBot && photoPath != null && File(photoPath!).existsSync()) {
-      inner = Image.file(File(photoPath!), fit: BoxFit.cover, width: size, height: size);
-    } else if (isBot) {
-      inner = Container(
-        decoration: glossyFill,
-        alignment: Alignment.center,
-        child: Icon(Icons.smart_toy, color: onRing, size: size * 0.55),
+      badge = ClipOval(
+        child: Image.file(File(photoPath!), fit: BoxFit.cover, width: badgeSize, height: badgeSize),
       );
+    } else if (isBot) {
+      badge = Icon(Icons.smart_toy, color: onToken, size: badgeSize * 0.62, shadows: [glyphShadow]);
     } else {
-      inner = Container(
-        decoration: glossyFill,
-        alignment: Alignment.center,
-        child: Text(
-          initial,
-          style: TextStyle(
-            color: onRing,
-            fontWeight: FontWeight.bold,
-            fontSize: size * 0.45,
-          ),
+      badge = Text(
+        initial,
+        style: TextStyle(
+          color: onToken,
+          fontWeight: FontWeight.bold,
+          fontSize: badgeSize * 0.55,
+          shadows: [glyphShadow],
         ),
       );
     }
@@ -78,24 +73,17 @@ class PieceAvatar extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size * 0.18),
-          border: Border.all(
-            color: highlighted ? Colors.white : ring,
-            width: highlighted ? size * 0.14 : size * 0.09,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.35),
-              blurRadius: size * 0.12,
-              offset: Offset(0, size * 0.04),
-            ),
-            if (highlighted)
-              BoxShadow(color: ring.withValues(alpha: 0.9), blurRadius: size * 0.35, spreadRadius: size * 0.04),
-          ],
+          shape: BoxShape.circle,
+          boxShadow: highlighted
+              ? [BoxShadow(color: Colors.white.withValues(alpha: 0.9), blurRadius: size * 0.35, spreadRadius: size * 0.04)]
+              : null,
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(size * 0.12),
-          child: inner,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(_tokenAssets[color]!, width: size, height: size),
+            badge,
+          ],
         ),
       ),
     );

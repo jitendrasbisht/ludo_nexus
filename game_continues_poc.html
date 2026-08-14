@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Game continues until 1 player is left — flow POC</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-bg:#ffffff; --card-border:#d7dce6; --accent:#2a3e66;
+  --navy-top:#2a3e66; --navy-bottom:#162444; --watermark:rgba(110,140,195,0.35);
+  --phone-bezel:#0e1420;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 72px; }
+.wrap{ max-width:1180px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(24px,3vw,32px); margin:0 0 10px; letter-spacing:-0.01em; text-wrap:balance; }
+.lede{ font-size:15.5px; line-height:1.6; color:var(--ink-dim); max-width:74ch; margin:0 0 16px; }
+.opinion{ background:var(--card-bg); border:1px solid var(--card-border); border-left:3px solid var(--accent); border-radius:10px; padding:18px 22px; margin:0 0 36px; max-width:82ch; }
+.opinion h2{ font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); margin:0 0 10px; font-weight:700; }
+.opinion p{ font-size:14.5px; line-height:1.65; margin:0 0 10px; }
+.opinion p:last-child{ margin-bottom:0; }
+
+.flow{ display:flex; gap:22px; overflow-x:auto; padding-bottom:12px; }
+.frame{ flex:0 0 240px; display:flex; flex-direction:column; gap:12px; }
+.frame-label{ font-size:12.5px; font-weight:700; }
+.frame-desc{ font-size:11.5px; line-height:1.5; color:var(--ink-dim); margin:0; min-height:48px; }
+.arrow{ align-self:center; font-size:22px; color:var(--ink-dim); flex:0 0 auto; padding-top:70px; }
+
+.phone{ background:var(--phone-bezel); border-radius:24px; padding:9px; box-shadow:0 12px 26px rgba(0,0,0,0.2); }
+.screen{ border-radius:17px; overflow:hidden; background:linear-gradient(180deg,var(--navy-top),var(--navy-bottom)); position:relative; aspect-ratio:9/17.5; }
+.screen::after{ content:""; position:absolute; inset:0; pointer-events:none; background-image:radial-gradient(6px 6px at 15% 25%, var(--watermark) 40%, transparent 41%), radial-gradient(4px 4px at 80% 70%, var(--watermark) 40%, transparent 41%); opacity:0.5; }
+
+.statusbar{ height:16px; background:rgba(0,0,0,0.15); }
+.appbar{ height:32px; display:flex; align-items:center; padding:0 10px; position:relative; z-index:1; }
+.appbar span{ color:#fff; font-size:11px; font-weight:700; }
+.chiprow{ position:relative; z-index:1; display:flex; gap:4px; padding:6px 8px 2px; }
+.chip{ flex:1; height:20px; border-radius:11px; border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:7.5px; color:#fff; opacity:0.55; gap:3px; }
+.chip.active{ opacity:1; border-width:2px; font-weight:700; }
+.chip.done{ opacity:0.85; background:rgba(255,255,255,0.12); }
+.board{ margin:10px 14px; aspect-ratio:1; border-radius:6px; background:#f7ecd3; position:relative; }
+.pill{ position:relative; z-index:1; margin:8px 10px 10px; padding:7px 8px; border-radius:14px; text-align:center; font-size:8.5px; font-weight:700; color:#fff; }
+.dialog{
+  position:absolute; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; z-index:5;
+}
+.dialog-card{ background:#fff; color:#1b2333; border-radius:10px; padding:12px 10px; width:82%; }
+.dialog-card h3{ font-size:10px; margin:0 0 8px; text-align:center; }
+.rank-row{ display:flex; align-items:center; gap:6px; font-size:8px; padding:3px 0; }
+.rank-num{ font-weight:800; width:14px; }
+.rank-dot{ width:8px; height:8px; border-radius:50%; }
+.dialog-btn{ margin-top:8px; background:#2a3e66; color:#fff; text-align:center; font-size:8px; font-weight:700; padding:6px; border-radius:8px; }
+
+footer{ margin-top:44px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Game continues to last place · POC, not implemented</p>
+  <h1>Play continues after 1st place, until only 1 player is left</h1>
+  <p class="lede">Currently the whole game ends the instant any player finishes all 4 pieces. This POC shows the new flow: a quick banner when someone finishes (no popup, no pause), play continues automatically with the rest, and a final rankings dialog only appears once just one player remains -- they're automatically last place, since there's no one left to play against them.</p>
+
+  <div class="opinion">
+    <h2>What's shown below</h2>
+    <p>4-player game: Red finishes 1st, the game keeps going for Green/Yellow/Blue, then Green finishes 2nd, and once only Blue is left unfinished, the game ends there -- Blue is automatically ranked 4th/last, without needing to actually finish.</p>
+  </div>
+
+  <div class="flow">
+    <div class="frame">
+      <span class="frame-label">1 &middot; Normal play</span>
+      <p class="frame-desc">All 4 still in play. Blue's turn.</p>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"></div>
+        <div class="chiprow">
+          <div class="chip">Red</div><div class="chip">Green</div><div class="chip">Yellow</div><div class="chip active">Blue</div>
+        </div>
+        <div class="board"></div>
+        <div class="pill" style="background:#00b0f0">Blue's turn continues...</div>
+      </div></div>
+    </div>
+
+    <div class="arrow">&rarr;</div>
+
+    <div class="frame">
+      <span class="frame-label">2 &middot; Red finishes 1st</span>
+      <p class="frame-desc">Quick banner in the status pill. No dialog, no pause -- play keeps moving.</p>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"></div>
+        <div class="chiprow">
+          <div class="chip done">Red &#127942;1st</div><div class="chip">Green</div><div class="chip">Yellow</div><div class="chip active">Blue</div>
+        </div>
+        <div class="board"></div>
+        <div class="pill" style="background:#e53935">Red finished 1st!</div>
+      </div></div>
+    </div>
+
+    <div class="arrow">&rarr;</div>
+
+    <div class="frame">
+      <span class="frame-label">3 &middot; Play continues</span>
+      <p class="frame-desc">Red is skipped in the turn rotation automatically (same as today). 3 players still competing.</p>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"></div>
+        <div class="chiprow">
+          <div class="chip done">Red &#127942;1st</div><div class="chip active">Green</div><div class="chip">Yellow</div><div class="chip">Blue</div>
+        </div>
+        <div class="board"></div>
+        <div class="pill" style="background:#00b050">Green's turn continues...</div>
+      </div></div>
+    </div>
+
+    <div class="arrow">&rarr;</div>
+
+    <div class="frame">
+      <span class="frame-label">4 &middot; Green finishes 2nd</span>
+      <p class="frame-desc">Same quick banner treatment. Only Yellow &amp; Blue left competing now.</p>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"></div>
+        <div class="chiprow">
+          <div class="chip done">Red &#127942;1st</div><div class="chip done">Green &#127942;2nd</div><div class="chip active">Yellow</div><div class="chip">Blue</div>
+        </div>
+        <div class="board"></div>
+        <div class="pill" style="background:#00b050">Green finished 2nd!</div>
+      </div></div>
+    </div>
+
+    <div class="arrow">&rarr;</div>
+
+    <div class="frame">
+      <span class="frame-label">5 &middot; Game ends -- 1 left</span>
+      <p class="frame-desc">Yellow finishes 3rd. Only Blue remains unfinished, so the game ends right there -- Blue is auto-ranked last. Final rankings dialog appears.</p>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"></div>
+        <div class="chiprow">
+          <div class="chip done">Red</div><div class="chip done">Green</div><div class="chip done">Yellow</div><div class="chip">Blue</div>
+        </div>
+        <div class="board"></div>
+        <div class="dialog">
+          <div class="dialog-card">
+            <h3>Game over!</h3>
+            <div class="rank-row"><span class="rank-num">1</span><span class="rank-dot" style="background:#e53935"></span>Red</div>
+            <div class="rank-row"><span class="rank-num">2</span><span class="rank-dot" style="background:#00b050"></span>Green</div>
+            <div class="rank-row"><span class="rank-num">3</span><span class="rank-dot" style="background:#ffd400"></span>Yellow</div>
+            <div class="rank-row"><span class="rank-num">4</span><span class="rank-dot" style="background:#00b0f0"></span>Blue</div>
+            <div class="dialog-btn">Play Again</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <footer>Mockup only &mdash; nothing in the app has changed. The banner text/wording and dialog styling are placeholders, easy to adjust once the flow itself is confirmed.</footer>
+</div>
+</body>
+</html>

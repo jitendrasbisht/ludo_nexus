@@ -6,9 +6,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// A short synthesized "click" tone used as a placeholder move-sound until
-/// real audio assets are available. Generated in-memory as raw PCM/WAV so
-/// no bundled audio asset is needed.
+import 'wav_encoder.dart';
+
+/// A short synthesized "bouncy pop" (a quick downward pitch sweep) played
+/// once per cell as a piece walks across the board. Generated in-memory as
+/// raw PCM/WAV so no bundled audio asset is needed.
 ///
 /// Deliberately uses the default MediaPlayer-backed player mode, not
 /// [PlayerMode.lowLatency] (SoundPool). On at least one real device tested
@@ -28,7 +30,7 @@ class ClickSound {
 
   static Future<void> _prepare() async {
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/ludo_click.wav');
+    final file = File('${dir.path}/ludo_move_pop.wav');
     if (!await file.exists()) {
       await file.writeAsBytes(_generateClickWav(), flush: true);
     }
@@ -60,65 +62,22 @@ class ClickSound {
 
   static Uint8List _generateClickWav() {
     const sampleRate = 44100;
-    const durationMs = 150;
-    const bodyFreq = 320.0; // low "thock" for perceived punch/loudness
-    const clickFreq = 1500.0; // higher transient for a crisp "click" edge
+    const durationMs = 100;
+    const freqStart = 900.0;
+    const freqEnd = 220.0;
     final sampleCount = (sampleRate * durationMs / 1000).round();
     final samples = Int16List(sampleCount);
 
-    // Fast attack, a genuine sustain plateau at full volume, then decay --
-    // a linear-decay-only envelope (the original approach) puts most of
-    // the energy right at the very start, which reads as quiet/thin.
-    final attackSamples = (sampleCount * 0.04).round().clamp(1, sampleCount);
-    final sustainSamples = (sampleCount * 0.35).round();
-
     for (var i = 0; i < sampleCount; i++) {
       final t = i / sampleRate;
-      double envelope;
-      if (i < attackSamples) {
-        envelope = i / attackSamples;
-      } else if (i < attackSamples + sustainSamples) {
-        envelope = 1.0;
-      } else {
-        final decayIndex = i - attackSamples - sustainSamples;
-        final decayLength = sampleCount - attackSamples - sustainSamples;
-        envelope = 1.0 - (decayIndex / decayLength);
-      }
-
-      final body = sin(2 * pi * bodyFreq * t) * 0.6;
-      final click = sin(2 * pi * clickFreq * t) * 0.4;
-      final mixed = (body + click) * envelope;
+      final progress = i / sampleCount;
+      final freq = freqStart + (freqEnd - freqStart) * progress;
+      final attack = t > 0.003 ? 1.0 : t / 0.003;
+      final envelope = exp(-t * 22) * attack;
+      final mixed = sin(2 * pi * freq * t) * envelope;
       samples[i] = (mixed * 32000).clamp(-32000, 32000).round();
     }
 
-    return _wavBytes(samples, sampleRate);
-  }
-
-  static Uint8List _wavBytes(Int16List samples, int sampleRate) {
-    final dataLength = samples.length * 2;
-    final buffer = BytesBuilder();
-
-    void writeString(String s) => buffer.add(s.codeUnits);
-    void writeUint32(int v) => buffer.add([v & 0xff, (v >> 8) & 0xff, (v >> 16) & 0xff, (v >> 24) & 0xff]);
-    void writeUint16(int v) => buffer.add([v & 0xff, (v >> 8) & 0xff]);
-
-    writeString('RIFF');
-    writeUint32(36 + dataLength);
-    writeString('WAVE');
-    writeString('fmt ');
-    writeUint32(16);
-    writeUint16(1); // PCM
-    writeUint16(1); // mono
-    writeUint32(sampleRate);
-    writeUint32(sampleRate * 2); // byte rate
-    writeUint16(2); // block align
-    writeUint16(16); // bits per sample
-    writeString('data');
-    writeUint32(dataLength);
-    for (final s in samples) {
-      writeUint16(s & 0xffff);
-    }
-
-    return buffer.toBytes();
+    return encodeMonoPcm16Wav(samples, sampleRate);
   }
 }

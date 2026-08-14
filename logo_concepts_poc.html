@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>LudoMania logo concepts</title>
+<style>
+:root{
+  --page-bg:#f6f1e6;
+  --page-bg-2:#efe6d2;
+  --ink:#241d12;
+  --ink-dim:#6c6252;
+  --card-bg:#ffffff;
+  --card-border:#e6dcc6;
+  --accent:#2a3e66;
+  --home-bg:#1c2740;
+}
+:root[data-theme="dark"]{
+  --page-bg:#171310;
+  --page-bg-2:#1e1810;
+  --ink:#f1ead9;
+  --ink-dim:#b3a894;
+  --card-bg:#211b14;
+  --card-border:#39301f;
+  --accent:#8fa8dd;
+  --home-bg:#0e1524;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page-bg:#171310;
+    --page-bg-2:#1e1810;
+    --ink:#f1ead9;
+    --ink-dim:#b3a894;
+    --card-bg:#211b14;
+    --card-border:#39301f;
+    --accent:#8fa8dd;
+    --home-bg:#0e1524;
+  }
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background:
+    radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent),
+    var(--page-bg);
+  color:var(--ink);
+  padding:40px 28px 72px;
+}
+.wrap{ max-width:1180px; margin:0 auto; }
+
+.eyebrow{
+  font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 10px;
+}
+h1{ font-size:clamp(24px,3vw,32px); margin:0 0 10px; letter-spacing:-0.01em; text-wrap:balance; }
+.lede{ font-size:15.5px; line-height:1.6; color:var(--ink-dim); max-width:70ch; margin:0 0 36px; }
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(210px,1fr));
+  gap:22px;
+}
+
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:16px;
+  padding:20px 18px 18px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.icon-slot{
+  width:132px; height:132px;
+  border-radius:30px;
+  overflow:hidden;
+  box-shadow:0 8px 20px rgba(0,0,0,0.18);
+}
+.icon-slot svg{ display:block; width:100%; height:100%; }
+
+.label{ text-align:center; }
+.label .name{ font-size:14px; font-weight:700; margin:0 0 4px; }
+.label .desc{ font-size:12.5px; line-height:1.5; color:var(--ink-dim); margin:0; }
+.tag{
+  font-size:10.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+  padding:2px 9px; border-radius:20px; background:var(--accent); color:#fff;
+}
+
+.homescreen{
+  margin-top:46px;
+  background:var(--home-bg);
+  border-radius:22px;
+  padding:28px 22px;
+}
+.homescreen h2{
+  color:#fff; opacity:0.7; font-size:11.5px; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; margin:0 0 18px; text-align:center;
+}
+.dock{
+  display:flex; justify-content:center; gap:22px; flex-wrap:wrap;
+}
+.dock-item{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+.dock-icon{ width:60px; height:60px; border-radius:16px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.35); }
+.dock-icon svg{ width:100%; height:100%; display:block; }
+.dock-item span{ color:#fff; opacity:0.8; font-size:10px; font-weight:600; }
+
+footer{ margin-top:44px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Logo concepts · pick one to refine</p>
+  <h1>5 playful "LudoMania" icon concepts</h1>
+  <p class="lede">All five keep the four player colors (red/green/yellow/blue) as the recognizable core of the mark, and lean cartoon/playful per your direction — rounded shapes, gloss highlights (same glossy-token treatment as the in-app pieces), a bit of bounce. Shown large, then again at real app-icon size on a mock home screen (labelled "LudoMania", the way it'll actually sit under your icon) so you can judge them small too.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="icon-slot" id="slot1"></div>
+      <div class="label">
+        <p class="name">1 · Dice Duo</p>
+        <p class="desc">Two glossy 3D dice, red &amp; blue, caught mid-tumble on a warm gradient.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="icon-slot" id="slot2"></div>
+      <div class="label">
+        <p class="name">2 · Pawn Huddle</p>
+        <p class="desc">All four glossy pawns in a friendly circle, cream background.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="icon-slot" id="slot3"></div>
+      <div class="label">
+        <p class="name">3 · Bouncy Die</p>
+        <p class="desc">One big die character with a face, mid-bounce, sunset gradient.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="icon-slot" id="slot4"></div>
+      <div class="label">
+        <p class="name">4 · Board Corner</p>
+        <p class="desc">A colorful board corner with a die landing on it, cream board tone.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="icon-slot" id="slot5"></div>
+      <div class="label">
+        <p class="name">5 · L-Pawn Mark</p>
+        <p class="desc">The "L" of Ludo built from a pawn silhouette, navy background &mdash; doubles as a clean wordmark monogram.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="homescreen">
+    <h2>At real icon size</h2>
+    <div class="dock">
+      <div class="dock-item"><div class="dock-icon" id="dock1"></div><span>LudoMania</span></div>
+      <div class="dock-item"><div class="dock-icon" id="dock2"></div><span>LudoMania</span></div>
+      <div class="dock-item"><div class="dock-icon" id="dock3"></div><span>LudoMania</span></div>
+      <div class="dock-item"><div class="dock-icon" id="dock4"></div><span>LudoMania</span></div>
+      <div class="dock-item"><div class="dock-icon" id="dock5"></div><span>LudoMania</span></div>
+    </div>
+  </div>
+
+  <footer>Concepts only &mdash; nothing built into the app yet. Tell me a number (or a mix, e.g. "3's die with 5's background") and I'll refine it into final launcher-icon assets.</footer>
+</div>
+
+<template id="defs">
+<svg xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="diceRed" cx="35%" cy="28%" r="80%">
+    <stop offset="0%" stop-color="#ff7a68"/>
+    <stop offset="55%" stop-color="#ee3b2f"/>
+    <stop offset="100%" stop-color="#b3160e"/>
+  </radialGradient>
+  <radialGradient id="diceBlue" cx="35%" cy="28%" r="80%">
+    <stop offset="0%" stop-color="#6fd0ff"/>
+    <stop offset="55%" stop-color="#0aa8e8"/>
+    <stop offset="100%" stop-color="#03649c"/>
+  </radialGradient>
+  <radialGradient id="diceWhite" cx="35%" cy="26%" r="85%">
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="60%" stop-color="#f2f0ec"/>
+    <stop offset="100%" stop-color="#d4d0c6"/>
+  </radialGradient>
+  <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#ffd166"/>
+    <stop offset="100%" stop-color="#ff8a3d"/>
+  </linearGradient>
+  <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#ff9a6b"/>
+    <stop offset="100%" stop-color="#e0457b"/>
+  </linearGradient>
+  <linearGradient id="bg5" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#31456f"/>
+    <stop offset="100%" stop-color="#16223f"/>
+  </linearGradient>
+  <radialGradient id="pawnRed" cx="35%" cy="25%" r="85%">
+    <stop offset="0%" stop-color="#ff8a7a"/>
+    <stop offset="55%" stop-color="#ec3b2e"/>
+    <stop offset="100%" stop-color="#a81208"/>
+  </radialGradient>
+  <radialGradient id="pawnGreen" cx="35%" cy="25%" r="85%">
+    <stop offset="0%" stop-color="#5cf0a0"/>
+    <stop offset="55%" stop-color="#0fb85a"/>
+    <stop offset="100%" stop-color="#046b32"/>
+  </radialGradient>
+  <radialGradient id="pawnYellow" cx="35%" cy="25%" r="85%">
+    <stop offset="0%" stop-color="#fff6b0"/>
+    <stop offset="55%" stop-color="#ffd400"/>
+    <stop offset="100%" stop-color="#c79600"/>
+  </radialGradient>
+  <radialGradient id="pawnBlue" cx="35%" cy="25%" r="85%">
+    <stop offset="0%" stop-color="#8fe3ff"/>
+    <stop offset="55%" stop-color="#0aa8e8"/>
+    <stop offset="100%" stop-color="#03567f"/>
+  </radialGradient>
+</defs>
+</svg>
+</template>
+
+<script>
+const defsSvg = document.getElementById('defs').content.querySelector('svg').innerHTML;
+
+function withDefs(inner){
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${defsSvg}${inner}</svg>`;
+}
+
+function pawn(cx, cy, scale, fill, rotate){
+  rotate = rotate || 0;
+  return `
+  <g transform="translate(${cx} ${cy}) rotate(${rotate}) scale(${scale})">
+    <ellipse cx="0" cy="34" rx="26" ry="9" fill="#000" opacity="0.18"/>
+    <path d="M -16 34 C -16 18 -13 10 -13 2 C -13 -8 -19 -12 -19 -24 C -19 -34 -10 -40 0 -40 C 10 -40 19 -34 19 -24 C 19 -12 13 -8 13 2 C 13 10 16 18 16 34 Z" fill="url(#${fill})" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+    <ellipse cx="-6" cy="-27" rx="6" ry="4" fill="#fff" opacity="0.55"/>
+  </g>`;
+}
+
+function die(cx, cy, size, grad, rotate, pipFill){
+  rotate = rotate || 0;
+  pipFill = pipFill || '#33302a';
+  const s = size/2;
+  return `
+  <g transform="translate(${cx} ${cy}) rotate(${rotate})">
+    <rect x="${-s}" y="${-s+3}" width="${size}" height="${size}" rx="${size*0.24}" fill="#000" opacity="0.16"/>
+    <rect x="${-s}" y="${-s}" width="${size}" height="${size}" rx="${size*0.24}" fill="url(#${grad})" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+    <circle cx="${-s*0.42}" cy="${-s*0.42}" r="${size*0.09}" fill="${pipFill}"/>
+    <circle cx="${s*0.42}" cy="${-s*0.42}" r="${size*0.09}" fill="${pipFill}"/>
+    <circle cx="0" cy="0" r="${size*0.09}" fill="${pipFill}"/>
+    <circle cx="${-s*0.42}" cy="${s*0.42}" r="${size*0.09}" fill="${pipFill}"/>
+    <circle cx="${s*0.42}" cy="${s*0.42}" r="${size*0.09}" fill="${pipFill}"/>
+    <ellipse cx="${-s*0.35}" cy="${-s*0.55}" rx="${size*0.16}" ry="${size*0.09}" fill="#fff" opacity="0.35"/>
+  </g>`;
+}
+
+// 1: Dice duo
+const icon1 = withDefs(`
+  <rect width="200" height="200" fill="url(#bg1)"/>
+  ${die(78,118,72,'diceRed',-14)}
+  ${die(128,86,64,'diceBlue',12)}
+`);
+
+// 2: Pawn huddle
+const icon2 = withDefs(`
+  <rect width="200" height="200" fill="#faf3e2"/>
+  <circle cx="100" cy="100" r="92" fill="#f2e6c8"/>
+  ${pawn(70,120,1.15,'pawnRed',-8)}
+  ${pawn(130,120,1.15,'pawnGreen',8)}
+  ${pawn(70,78,1.0,'pawnYellow',-6)}
+  ${pawn(130,78,1.0,'pawnBlue',6)}
+`);
+
+// 3: Bouncy die character
+const icon3 = withDefs(`
+  <rect width="200" height="200" fill="url(#bg3)"/>
+  <path d="M40 150 Q60 130 90 140" stroke="#fff" stroke-width="4" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <path d="M150 60 Q165 75 158 95" stroke="#fff" stroke-width="4" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <g transform="translate(100 108) rotate(-6)">
+    <ellipse cx="0" cy="58" rx="46" ry="10" fill="#000" opacity="0.15"/>
+    <rect x="-52" y="-52" width="104" height="104" rx="26" fill="url(#diceWhite)" stroke="rgba(0,0,0,0.12)" stroke-width="1.5"/>
+    <circle cx="-20" cy="-14" r="7" fill="#2a3e66"/>
+    <circle cx="20" cy="-14" r="7" fill="#2a3e66"/>
+    <path d="M -16 18 Q 0 32 16 18" stroke="#2a3e66" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="-18" cy="-32" rx="20" ry="10" fill="#fff" opacity="0.4"/>
+  </g>
+`);
+
+// 4: Board corner
+const icon4 = withDefs(`
+  <rect width="200" height="200" fill="#f7ecd3"/>
+  <rect x="14" y="14" width="80" height="80" rx="14" fill="url(#pawnRed)"/>
+  <circle cx="38" cy="38" r="8" fill="#fff" opacity="0.85"/>
+  <circle cx="70" cy="38" r="8" fill="#fff" opacity="0.85"/>
+  <circle cx="38" cy="70" r="8" fill="#fff" opacity="0.85"/>
+  <circle cx="70" cy="70" r="8" fill="#fff" opacity="0.85"/>
+  <rect x="94" y="14" width="26" height="172" fill="#fff" opacity="0.5"/>
+  <rect x="14" y="94" width="172" height="26" fill="#fff" opacity="0.5"/>
+  ${die(150,150,64,'diceBlue',18)}
+`);
+
+// 5: L-Pawn mark
+const icon5 = withDefs(`
+  <rect width="200" height="200" fill="url(#bg5)"/>
+  <g transform="translate(78 100)">
+    <path d="M -20 -46 C -20 -56 -11 -62 0 -62 C 11 -62 20 -56 20 -46 C 20 -36 14 -32 14 -22 C 14 -14 17 -10 17 0 L 17 46 L -17 46 L -17 0 C -17 -10 -14 -14 -14 -22 C -14 -32 -20 -36 -20 -46 Z" fill="url(#pawnYellow)" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>
+    <ellipse cx="-7" cy="-49" rx="7" ry="4.5" fill="#fff" opacity="0.55"/>
+  </g>
+  <rect x="61" y="128" width="78" height="18" rx="6" fill="url(#pawnYellow)" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>
+`);
+
+document.getElementById('slot1').innerHTML = icon1;
+document.getElementById('slot2').innerHTML = icon2;
+document.getElementById('slot3').innerHTML = icon3;
+document.getElementById('slot4').innerHTML = icon4;
+document.getElementById('slot5').innerHTML = icon5;
+document.getElementById('dock1').innerHTML = icon1;
+document.getElementById('dock2').innerHTML = icon2;
+document.getElementById('dock3').innerHTML = icon3;
+document.getElementById('dock4').innerHTML = icon4;
+document.getElementById('dock5').innerHTML = icon5;
+</script>
+</body>
+</html>
