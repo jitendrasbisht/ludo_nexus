@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Leave-game dialog — round 3</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:1200px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 36px; }
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:24px; }
+.stage{
+  border-radius:18px; padding:26px 18px 30px;
+  background:
+    radial-gradient(700px 380px at 25% -20%, rgba(90,120,190,0.35), transparent),
+    linear-gradient(160deg,#1c2c4e,#0f1930 70%);
+  display:flex; align-items:center; justify-content:center; min-height:420px; position:relative; overflow:hidden;
+}
+.stage::before{
+  content:""; position:absolute; inset:0;
+  background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 40px), repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 40px);
+}
+.stage-label{ position:absolute; top:12px; left:16px; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.55); z-index:2; }
+.caption{ font-size:12px; line-height:1.5; color:var(--ink-dim); margin:10px 4px 0; }
+
+/* ---------- C: Pause-button motif ---------- */
+.dlgC{
+  width:280px; border-radius:20px; padding:28px 22px 22px; text-align:center;
+  background:linear-gradient(165deg,#fdf6e6,#f2e6c4);
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.8), inset 0 -8px 12px rgba(120,95,40,0.1), 0 24px 40px rgba(0,0,0,0.45);
+}
+.pause-3d{
+  width:64px; height:64px; border-radius:50%; margin:0 auto 16px; position:relative;
+  background:linear-gradient(155deg,#4a5f92,#1c2c4e);
+  box-shadow: inset 0 4px 5px rgba(255,255,255,0.25), inset 0 -7px 9px rgba(0,0,0,0.35), 0 10px 18px rgba(0,0,0,0.4);
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.pause-3d .bar{ width:8px; height:22px; border-radius:3px; background:linear-gradient(160deg,#fff,#dbe2ee); box-shadow:0 1px 2px rgba(0,0,0,0.3); }
+.dlgC h2{ font-size:17px; margin:0 0 8px; }
+.dlgC p{ font-size:12.5px; line-height:1.5; color:#6b5a2e; margin:0 0 20px; }
+.btn-row{ display:flex; gap:10px; }
+.btn3d{ flex:1; border:none; border-radius:13px; padding:12px 0; font-size:13.5px; font-weight:700; cursor:pointer; }
+.C-resume{ background:linear-gradient(160deg,#4a5f92,#1c2c4e); color:#fff; box-shadow: inset 0 2px 2px rgba(255,255,255,0.3), inset 0 -5px 7px rgba(0,0,0,0.3), 0 6px 12px rgba(20,30,55,0.5); }
+.C-exit{ background:transparent; color:#8a6a2f; box-shadow:none; text-decoration:underline; font-weight:600; }
+
+/* ---------- D: Board-fragment card ---------- */
+.dlgD{
+  width:290px; border-radius:16px; overflow:hidden;
+  background:#fdf6e6;
+  box-shadow: 0 24px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.board-strip{
+  height:34px; display:flex;
+}
+.board-strip div{ flex:1; }
+.bs1{ background:#e21e1e; } .bs2{ background:#00b050; } .bs3{ background:#f2c200; } .bs4{ background:#0090d8; }
+.dlgD-body{ padding:22px 22px 20px; text-align:center; }
+.star-icon{
+  width:44px; height:44px; margin:0 auto 12px; position:relative;
+  background:radial-gradient(circle at 35% 30%, #fff8e0, #e8c86a 70%);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+}
+.dlgD h2{ font-size:17px; margin:0 0 8px; }
+.dlgD p{ font-size:12.5px; line-height:1.5; color:#6b5a2e; margin:0 0 20px; }
+
+/* ---------- E: Two-pieces "vs" motif ---------- */
+.dlgE{
+  width:290px; border-radius:20px; padding:24px 22px 20px; text-align:center;
+  background:linear-gradient(165deg,#fdf6e6,#f2e6c4);
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.8), inset 0 -8px 12px rgba(120,95,40,0.1), 0 24px 40px rgba(0,0,0,0.45);
+}
+.vs-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:14px; }
+.piece-sm{ width:40px; height:40px; border-radius:50%; box-shadow: inset 0 3px 4px rgba(255,255,255,0.5), inset 0 -5px 6px rgba(0,0,0,0.28), 0 5px 10px rgba(0,0,0,0.3); }
+.piece-sm.red{ background:linear-gradient(155deg,#ff7a68,#c8291a); }
+.piece-sm.blue{ background:linear-gradient(155deg,#5cc4f2,#0871a8); opacity:0.4; filter:grayscale(0.6); }
+.vs-x{ font-size:18px; font-weight:800; color:#8a6a2f; }
+.dlgE h2{ font-size:17px; margin:0 0 8px; }
+.dlgE p{ font-size:12.5px; line-height:1.5; color:#6b5a2e; margin:0 0 20px; }
+
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC round 3, not yet wired in</p>
+  <h1>Three more directions</h1>
+  <p class="lede">All keep the cream/navy palette from round 2 (that one wasn't rejected, just no verdict yet) but try different motifs instead of the warning-badge piece.</p>
+
+  <div class="grid">
+    <div>
+      <div class="stage">
+        <div class="stage-label">C · Pause-button motif</div>
+        <div class="dlgC">
+          <div class="pause-3d"><div class="bar"></div><div class="bar"></div></div>
+          <h2>Game paused</h2>
+          <p>Leaving now cancels the match in progress.</p>
+          <div class="btn-row">
+            <button class="btn3d C-resume">Resume</button>
+          </div>
+          <div style="margin-top:12px;"><span class="C-exit">Exit anyway</span></div>
+        </div>
+      </div>
+      <p class="caption">Reframes it around the pause you just added — "Resume" is the obvious big action, "Exit anyway" is a quiet text link underneath rather than an equal-weight button, so leaving reads as the less-encouraged choice.</p>
+    </div>
+
+    <div>
+      <div class="stage">
+        <div class="stage-label">D · Board-fragment card</div>
+        <div class="dlgD">
+          <div class="board-strip"><div class="bs1"></div><div class="bs2"></div><div class="bs3"></div><div class="bs4"></div></div>
+          <div class="dlgD-body">
+            <div class="star-icon"></div>
+            <h2>Leave this game?</h2>
+            <p>Going back will cancel the current game in progress.</p>
+            <div class="btn-row">
+              <button class="btn3d C-resume">Stay</button>
+              <button class="btn3d" style="background:linear-gradient(160deg,#fffdf7,#e8ddc0 70%,#d8c99f); color:#7a5a1f; box-shadow: inset 0 2px 2px rgba(255,255,255,0.9), inset 0 -5px 7px rgba(0,0,0,0.12), 0 6px 12px rgba(0,0,0,0.2); border:1px solid rgba(122,90,31,0.25);">Leave</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="caption">A thin 4-color strip (Red/Green/Yellow/Blue) across the top ties it directly to the board itself, with a glossy star -- the board's own "safe cell" icon -- standing in for the warning glyph instead of a generic symbol.</p>
+    </div>
+
+    <div>
+      <div class="stage">
+        <div class="stage-label">E · Two-pieces "vs" motif</div>
+        <div class="dlgE">
+          <div class="vs-row">
+            <div class="piece-sm red"></div>
+            <span class="vs-x">VS</span>
+            <div class="piece-sm blue"></div>
+          </div>
+          <h2>Leave this game?</h2>
+          <p>Going back will cancel the current game in progress.</p>
+          <div class="btn-row">
+            <button class="btn3d C-resume">Stay</button>
+            <button class="btn3d" style="background:linear-gradient(160deg,#fffdf7,#e8ddc0 70%,#d8c99f); color:#7a5a1f; box-shadow: inset 0 2px 2px rgba(255,255,255,0.9), inset 0 -5px 7px rgba(0,0,0,0.12), 0 6px 12px rgba(0,0,0,0.2); border:1px solid rgba(122,90,31,0.25);">Leave</button>
+          </div>
+        </div>
+      </div>
+      <p class="caption">One piece (the current player, full color) facing a faded/greyed-out opponent piece -- visually says "the match is still undecided" without any text. Playful, but maybe too cute for a confirmation dialog -- included for completeness.</p>
+    </div>
+  </div>
+
+  <footer>POC only. Tell me a letter (C, D, or E), or say round 2's design was actually fine and I'll build that one instead.</footer>
+</div>
+</body>
+</html>

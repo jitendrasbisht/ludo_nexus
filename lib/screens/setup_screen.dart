@@ -20,7 +20,7 @@ class SetupScreen extends StatefulWidget {
 }
 
 class _SlotConfig {
-  final PlayerColor color;
+  PlayerColor color;
   String name;
   bool isHuman = true;
   String? photoPath;
@@ -39,7 +39,8 @@ class _SetupScreenState extends State<SetupScreen> {
   void initState() {
     super.initState();
     _slots = [
-      for (final color in PlayerColor.values) _SlotConfig(color: color, name: color.label),
+      for (var i = 0; i < PlayerColor.values.length; i++)
+        _SlotConfig(color: PlayerColor.values[i], name: 'Player ${i + 1}'),
     ];
     _loadSavedProfiles();
   }
@@ -53,6 +54,16 @@ class _SetupScreenState extends State<SetupScreen> {
         _slots[i].photoPath = saved[i].photoPath;
       }
       _loadingProfiles = false;
+    });
+  }
+
+  void _swapColor(_SlotConfig slot, PlayerColor newColor) {
+    if (slot.color == newColor) return;
+    final other = _slots.firstWhere((s) => s.color == newColor);
+    setState(() {
+      final oldColor = slot.color;
+      slot.color = newColor;
+      other.color = oldColor;
     });
   }
 
@@ -82,7 +93,10 @@ class _SetupScreenState extends State<SetupScreen> {
     final picked = await _picker.pickImage(source: source, imageQuality: 85);
     if (picked == null) return;
 
-    final stablePath = await AvatarStorage.persist(picked.path, slot.color.name);
+    final stablePath = await AvatarStorage.persist(
+      picked.path,
+      slot.color.name,
+    );
     if (!mounted) return;
     setState(() => slot.photoPath = stablePath);
   }
@@ -109,9 +123,11 @@ class _SetupScreenState extends State<SetupScreen> {
     ];
 
     if (!mounted) return;
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => GameScreen(engine: LudoEngine(players: players)),
-    ));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => GameScreen(engine: LudoEngine(players: players)),
+      ),
+    );
   }
 
   @override
@@ -119,7 +135,11 @@ class _SetupScreenState extends State<SetupScreen> {
     final activeSlots = _slots.take(_playerCount).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('New Game')),
+      appBar: AppBar(
+        title: const Text('New Game'),
+        backgroundColor: const Color(0xFF2A3E66),
+        foregroundColor: Colors.white,
+      ),
       body: AppBackground(
         child: SafeArea(
           child: _loadingProfiles
@@ -137,10 +157,14 @@ class _SetupScreenState extends State<SetupScreen> {
                               ButtonSegment(value: 4, label: Text('4')),
                             ],
                             selected: {_playerCount},
-                            onSelectionChanged: (s) => setState(() => _playerCount = s.first),
+                            onSelectionChanged: (s) =>
+                                setState(() => _playerCount = s.first),
                             style: ButtonStyle(
                               foregroundColor: WidgetStateProperty.resolveWith(
-                                (states) => states.contains(WidgetState.selected) ? Colors.black : Colors.white,
+                                (states) =>
+                                    states.contains(WidgetState.selected)
+                                    ? Colors.black
+                                    : Colors.white,
                               ),
                             ),
                           ),
@@ -155,6 +179,8 @@ class _SetupScreenState extends State<SetupScreen> {
                           slot: activeSlots[index],
                           onPickPhoto: () => _pickPhoto(activeSlots[index]),
                           onChanged: () => setState(() {}),
+                          onColorSelect: (color) =>
+                              _swapColor(activeSlots[index], color),
                         ),
                       ),
                     ),
@@ -166,7 +192,10 @@ class _SetupScreenState extends State<SetupScreen> {
                           onPressed: _startGame,
                           child: const Padding(
                             padding: EdgeInsets.all(12),
-                            child: Text('Start Game', style: TextStyle(fontSize: 16)),
+                            child: Text(
+                              'Start Game',
+                              style: TextStyle(fontSize: 16),
+                            ),
                           ),
                         ),
                       ),
@@ -183,13 +212,19 @@ class _SlotCard extends StatelessWidget {
   final _SlotConfig slot;
   final VoidCallback onPickPhoto;
   final VoidCallback onChanged;
+  final ValueChanged<PlayerColor> onColorSelect;
 
-  const _SlotCard({required this.slot, required this.onPickPhoto, required this.onChanged});
+  const _SlotCard({
+    required this.slot,
+    required this.onPickPhoto,
+    required this.onChanged,
+    required this.onColorSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -207,66 +242,94 @@ class _SlotCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: slot.isHuman ? onPickPhoto : null,
-              child: PieceAvatar(
-                color: slot.color,
-                size: 56,
-                photoPath: slot.photoPath,
-                initial: slot.name.isNotEmpty ? slot.name[0].toUpperCase() : '?',
-                isBot: !slot.isHuman,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        slot.color.label,
-                        style: TextStyle(color: slot.color.material, fontWeight: FontWeight.bold),
-                      ),
-                      const Spacer(),
-                      const Text('Bot'),
-                      Switch(
-                        value: !slot.isHuman,
-                        onChanged: (isBot) {
-                          slot.isHuman = !isBot;
-                          onChanged();
-                        },
-                      ),
-                    ],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: slot.isHuman ? onPickPhoto : null,
+                  child: PieceAvatar(
+                    color: slot.color,
+                    size: 42,
+                    photoPath: slot.photoPath,
+                    initial: slot.name.isNotEmpty
+                        ? slot.name[0].toUpperCase()
+                        : '?',
+                    isBot: !slot.isHuman,
                   ),
-                  if (slot.isHuman)
-                    TextFormField(
-                      key: ValueKey('name_${slot.color.name}'),
-                      initialValue: slot.name,
-                      decoration: const InputDecoration(hintText: 'Player name', isDense: true),
-                      onChanged: (v) => slot.name = v,
-                    )
-                  else
-                    DropdownButton<BotDifficulty>(
-                      value: slot.botDifficulty,
-                      isExpanded: true,
-                      items: [
-                        for (final d in BotDifficulty.values) DropdownMenuItem(value: d, child: Text(d.label)),
-                      ],
-                      onChanged: (d) {
-                        if (d != null) {
-                          slot.botDifficulty = d;
-                          onChanged();
-                        }
-                      },
-                    ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 10),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final color in PlayerColor.values)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () => onColorSelect(color),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              color: color.material,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: color == slot.color
+                                    ? Colors.black87
+                                    : Colors.white,
+                                width: color == slot.color ? 3 : 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const Spacer(),
+                const Text('Bot', style: TextStyle(fontSize: 12)),
+                Transform.scale(
+                  scale: 0.8,
+                  child: Switch(
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    value: !slot.isHuman,
+                    onChanged: (isBot) {
+                      slot.isHuman = !isBot;
+                      onChanged();
+                    },
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 4),
+            if (slot.isHuman)
+              TextFormField(
+                key: ValueKey('name_${slot.color.name}'),
+                initialValue: slot.name,
+                decoration: const InputDecoration(
+                  hintText: 'Player name',
+                  isDense: true,
+                ),
+                onChanged: (v) => slot.name = v,
+              )
+            else
+              DropdownButton<BotDifficulty>(
+                value: slot.botDifficulty,
+                isExpanded: true,
+                items: [
+                  for (final d in BotDifficulty.values)
+                    DropdownMenuItem(value: d, child: Text(d.label)),
+                ],
+                onChanged: (d) {
+                  if (d != null) {
+                    slot.botDifficulty = d;
+                    onChanged();
+                  }
+                },
+              ),
           ],
         ),
       ),

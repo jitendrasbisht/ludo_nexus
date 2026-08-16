@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Dice roll — sequential 1-6 cycle POC</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-bg:#ffffff; --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:760px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:70ch; margin:0 0 36px; }
+.card{ background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:32px; display:flex; flex-direction:column; align-items:center; gap:22px; }
+.stage{ background:#f7ecd3; border-radius:16px; padding:50px; display:flex; align-items:center; justify-content:center; }
+
+.die{ width:90px; height:90px; border-radius:20px; position:relative;
+  background:linear-gradient(165deg,#ffe3e0 0%, #ff8177 100%);
+  box-shadow: inset 0 3px 3px rgba(255,255,255,0.85), inset 0 -6px 8px rgba(0,0,0,0.2), 0 10px 18px rgba(0,0,0,0.35);
+  transition: transform 0.08s ease;
+}
+.die.rolling{ transform: scale(1.06); }
+.pip{ position:absolute; width:13px; height:13px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #a83a2c, #4a0f08 70%);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+}
+.p1{top:38px;left:38px}
+.p-tl{top:16px;left:16px} .p-tr{top:16px;right:16px} .p-bl{bottom:16px;left:16px} .p-br{bottom:16px;right:16px}
+.p-cl{top:50%;left:16px;margin-top:-6.5px} .p-cr{top:50%;right:16px;margin-top:-6.5px} .p-c{top:50%;left:50%;margin-top:-6.5px;margin-left:-6.5px}
+
+.controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
+.play-btn{ border:none; background:var(--accent); color:#fff; font-size:14px; font-weight:600; padding:11px 22px; border-radius:22px; cursor:pointer; }
+.play-btn:hover{ opacity:0.9; }
+label{ font-size:13px; color:var(--ink-dim); display:flex; align-items:center; gap:8px; }
+input[type="range"]{ width:140px; }
+.readout{ font-size:12.5px; color:var(--ink-dim); text-align:center; }
+.readout b{ color:var(--ink); }
+
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC, not yet wired in</p>
+  <h1>Dice roll: sequential 1→6 cycle</h1>
+  <p class="lede">Instead of flashing a random face every tick, this cycles 1→2→3→4→5→6 in order, three full loops, then lands on the real rolled value — same player-tinted 3D bevel style already in the app (shown here as Red's turn).</p>
+
+  <div class="card">
+    <div class="stage">
+      <div class="die" id="die">
+        <div class="pip p1" id="p1" style="display:none"></div>
+        <div class="pip p-tl" id="ptl" style="display:none"></div>
+        <div class="pip p-tr" id="ptr" style="display:none"></div>
+        <div class="pip p-bl" id="pbl" style="display:none"></div>
+        <div class="pip p-br" id="pbr" style="display:none"></div>
+        <div class="pip p-cl" id="pcl" style="display:none"></div>
+        <div class="pip p-cr" id="pcr" style="display:none"></div>
+        <div class="pip p-c" id="pc" style="display:none"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="play-btn" id="rollBtn" type="button">▶ Roll the dice</button>
+      <label>Per-face speed: <span id="speedLabel">28ms</span> <input type="range" min="15" max="60" value="28" id="speedSlider"></label>
+    </div>
+    <div class="readout">3 full loops of 1-6 = <b>18 face-changes</b>, total roll time = <b><span id="totalMs">504</span>ms</b></div>
+    <div class="readout" id="resultText" style="font-size:14px;font-weight:700;">Tap the button above to roll</div>
+  </div>
+
+  <footer>POC only. Drag the slider to feel different speeds, then hit Roll again. Tell me a per-face speed (or just "the default feels right") and I'll build it into the real DiceWidget.</footer>
+</div>
+<script>
+const layouts = {
+  1: ['p1'],
+  2: ['ptl','pbr'],
+  3: ['ptl','pc','pbr'],
+  4: ['ptl','ptr','pbl','pbr'],
+  5: ['ptl','ptr','pc','pbl','pbr'],
+  6: ['ptl','ptr','pcl','pcr','pbl','pbr'],
+};
+const allPips = ['p1','ptl','ptr','pbl','pbr','pcl','pcr','pc'];
+let perFaceMs = 28;
+
+function showFace(n){
+  allPips.forEach(id => document.getElementById(id).style.display = 'none');
+  layouts[n].forEach(id => document.getElementById(id).style.display = 'block');
+}
+
+function updateSpeed(){
+  perFaceMs = parseInt(document.getElementById('speedSlider').value, 10);
+  document.getElementById('speedLabel').textContent = perFaceMs + 'ms';
+  document.getElementById('totalMs').textContent = perFaceMs * 18;
+}
+
+let rolling = false;
+function roll(){
+  if (rolling) return;
+  rolling = true;
+  const btn = document.getElementById('rollBtn');
+  const resultText = document.getElementById('resultText');
+  btn.disabled = true;
+  resultText.textContent = 'Rolling...';
+  const die = document.getElementById('die');
+  die.classList.add('rolling');
+  const finalValue = Math.floor(Math.random()*6)+1;
+  let step = 0;
+  const totalSteps = 18; // 3 loops of 6
+  const timer = setInterval(() => {
+    const face = (step % 6) + 1;
+    showFace(face);
+    step++;
+    if (step >= totalSteps) {
+      clearInterval(timer);
+      showFace(finalValue);
+      die.classList.remove('rolling');
+      rolling = false;
+      btn.disabled = false;
+      resultText.textContent = 'Landed on ' + finalValue + ' -- tap to roll again';
+    }
+  }, perFaceMs);
+}
+
+document.getElementById('rollBtn').addEventListener('click', roll);
+document.getElementById('speedSlider').addEventListener('input', updateSpeed);
+showFace(4);
+// Auto-roll once on load so the animation is visible even if the button
+// click doesn't register in whatever viewer this opens in.
+setTimeout(roll, 600);
+</script>
+</body>
+</html>

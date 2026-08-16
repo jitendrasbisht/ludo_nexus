@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
+
+import 'audio_player_pool.dart';
 
 /// Plays the bundled "magic burst" clip once when a move captures one or
 /// more opponent pieces -- a real audio asset (not synthesized, unlike
@@ -16,7 +17,7 @@ import 'package:path_provider/path_provider.dart';
 class CaptureSound {
   static const _assetPath = 'assets/sounds/capture_magic_burst.wav';
 
-  static final AudioPlayer _player = AudioPlayer();
+  static final AudioPlayerPool _pool = AudioPlayerPool();
   static Future<void>? _preparing;
   static String? _filePath;
 
@@ -32,7 +33,7 @@ class CaptureSound {
       await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
     }
     _filePath = file.path;
-    await _player.setVolume(1.0);
+    await _pool.setVolume(1.0);
     debugPrint('CaptureSound: source ready at ${file.path}');
   }
 
@@ -45,8 +46,7 @@ class CaptureSound {
   static Future<void> play() async {
     try {
       await _ensurePrepared();
-      await _player.stop();
-      await _player.play(DeviceFileSource(_filePath!));
+      await _pool.play(_filePath!);
     } catch (e, st) {
       debugPrint('CaptureSound: play FAILED: $e\n$st');
       _preparing = null; // allow a retry on the next play()

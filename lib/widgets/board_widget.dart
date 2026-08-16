@@ -43,12 +43,14 @@ class BoardWidget extends StatelessWidget {
   /// card instead of empty base slots for the rest of the match.
   final Map<PlayerColor, int> finishedRanks;
 
-  /// While a piece is stepping across the board, its position is driven by
-  /// [walkingFraction] instead of its real (already-updated) engine
-  /// position, so the UI can show it walking cell-by-cell rather than
-  /// jumping straight to where it landed.
-  final Piece? walkingPiece;
-  final Offset? walkingFraction;
+  /// While a piece is stepping across the board (moving forward, or
+  /// retreating back to base after being captured), its position is driven
+  /// by its entry here instead of its real (already-updated) engine
+  /// position, so the UI can show it walking cell-by-cell along the actual
+  /// track rather than jumping/sliding straight to where it landed. Keyed
+  /// by piece so more than one can be mid-walk at once (e.g. the mover and
+  /// a captured piece retreating at the same time).
+  final Map<Piece, Offset> walkingFractions;
 
   /// Builds the dice widget for the given pixel size. Anchored on the
   /// board itself at [activeColor]'s own star/safe cell, and slides there
@@ -62,8 +64,7 @@ class BoardWidget extends StatelessWidget {
     this.onPieceTap,
     this.activeColor,
     this.finishedRanks = const {},
-    this.walkingPiece,
-    this.walkingFraction,
+    this.walkingFractions = const {},
     this.diceBuilder,
   });
 
@@ -83,8 +84,9 @@ class BoardWidget extends StatelessWidget {
   }
 
   Offset _fractionFor(Piece piece) {
-    if (piece == walkingPiece && walkingFraction != null) {
-      return walkingFraction!;
+    final walking = walkingFractions[piece];
+    if (walking != null) {
+      return walking;
     }
     if (piece.isInBase) {
       return BoardLayout.baseSlots(piece.color)[piece.id];

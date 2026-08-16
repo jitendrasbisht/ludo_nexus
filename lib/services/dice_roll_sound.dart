@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
+
+import 'audio_player_pool.dart';
 
 /// Plays the bundled "metal box" dice-rattle clip once for the whole
 /// dice-roll spin -- a real audio asset (not synthesized, unlike
@@ -17,10 +18,10 @@ import 'package:path_provider/path_provider.dart';
 /// clip's tail had actually played -- reading as the sound getting cut
 /// off. This is the same reliable pattern already used by [ClickSound].
 class DiceRollSound {
-  static const durationMs = 1000;
+  static const durationMs = 504;
   static const _assetPath = 'assets/sounds/dice_roll_metal_box.wav';
 
-  static final AudioPlayer _player = AudioPlayer();
+  static final AudioPlayerPool _pool = AudioPlayerPool();
   static Future<void>? _preparing;
   static String? _filePath;
 
@@ -36,7 +37,7 @@ class DiceRollSound {
       await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
     }
     _filePath = file.path;
-    await _player.setVolume(1.0);
+    await _pool.setVolume(1.0);
     debugPrint('DiceRollSound: source ready at ${file.path}');
   }
 
@@ -49,8 +50,7 @@ class DiceRollSound {
   static Future<void> play() async {
     try {
       await _ensurePrepared();
-      await _player.stop();
-      await _player.play(DeviceFileSource(_filePath!));
+      await _pool.play(_filePath!);
     } catch (e, st) {
       debugPrint('DiceRollSound: play FAILED: $e\n$st');
       _preparing = null; // allow a retry on the next play()

@@ -5,13 +5,14 @@ import '../models/player_color.dart';
 import 'ludo_colors.dart';
 import 'piece_avatar.dart';
 
-/// A slim, always-visible row showing every player at a glance -- the
+/// A slim, always-visible grid showing every player at a glance -- the
 /// active player's chip is emphasized (bigger avatar, filled outline,
 /// bold name) so whose turn it is reads without a separate banner.
 ///
-/// Each chip gets an equal share of the row's width (rather than sizing
-/// to content in a horizontally-scrolling row) so all 2-4 chips always
-/// fit on screen without the last one clipping off the edge.
+/// Capped at 2 chips per row (wrapping to a second row for 3-4 players)
+/// rather than squeezing all of them into one row -- fitting 4 chips
+/// (avatar + name each) side by side left too little width per chip and
+/// pushed names past the screen edge.
 class PlayerChipsRow extends StatelessWidget {
   final List<LudoPlayer> players;
   final PlayerColor activeColor;
@@ -20,13 +21,24 @@ class PlayerChipsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rows = <List<LudoPlayer>>[
+      for (var i = 0; i < players.length; i += 2)
+        players.sublist(i, (i + 2 > players.length) ? players.length : i + 2),
+    ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: Row(
+      child: Column(
         children: [
-          for (final player in players) ...[
-            Expanded(child: _PlayerChip(player: player, isActive: player.color == activeColor)),
-            if (player != players.last) const SizedBox(width: 6),
+          for (final row in rows) ...[
+            Row(
+              children: [
+                for (final player in row) ...[
+                  Expanded(child: _PlayerChip(player: player, isActive: player.color == activeColor)),
+                  if (player != row.last) const SizedBox(width: 6),
+                ],
+              ],
+            ),
+            if (row != rows.last) const SizedBox(height: 6),
           ],
         ],
       ),

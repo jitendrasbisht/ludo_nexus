@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Feedback round 1 — POC (color picker, speed, highlight, 3D dice)</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-bg:#ffffff; --card-border:#d7dce6; --accent:#2a3e66; --board-bg:#f7ecd3;
+  --red:#e21e1e; --green:#00b050; --yellow:#f2c200; --blue:#0090d8;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-bg:#1a1f2b; --card-border:#2b3244; --accent:#7fa0e0; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:1080px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; text-wrap:balance; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 40px; }
+section{ margin:0 0 56px; }
+section h2{ font-size:19px; margin:0 0 6px; }
+section .sub{ font-size:13.5px; color:var(--ink-dim); margin:0 0 20px; max-width:74ch; line-height:1.55; }
+.card{ background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:22px; }
+.tag{ display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding:3px 9px; border-radius:20px; margin-left:8px; vertical-align:middle; }
+.tag.new{ background:#dff5e6; color:#0f7a3d; }
+:root[data-theme="dark"] .tag.new, @media (prefers-color-scheme:dark){ .tag.new{ background:#123825; color:#5fd996; } }
+
+/* ---------- 1. color picker ---------- */
+.slot{ display:flex; align-items:center; gap:14px; padding:12px 14px; border-radius:12px; margin-bottom:10px; background:linear-gradient(135deg,#c7e0fa,#8fbef0); border:1px solid rgba(255,255,255,0.5); }
+:root[data-theme="dark"] .slot, @media (prefers-color-scheme:dark){ .slot{ background:linear-gradient(135deg,#22314f,#1a2740); } }
+.token{ width:46px; height:46px; border-radius:50%; flex:0 0 auto; position:relative; box-shadow: inset 0 -4px 6px rgba(0,0,0,0.25), inset 0 3px 4px rgba(255,255,255,0.5), 0 3px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+.slot-info{ flex:1; }
+.slot-name{ font-weight:700; font-size:14px; margin-bottom:2px; }
+.slot-role{ font-size:12px; color:var(--ink-dim); }
+.swatches{ display:flex; gap:8px; }
+.swatch{ width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform 0.12s ease, border-color 0.12s ease; box-shadow: inset 0 -3px 4px rgba(0,0,0,0.25), inset 0 2px 3px rgba(255,255,255,0.4); }
+.swatch:hover{ transform:scale(1.12); }
+.swatch.active{ border-color:var(--ink); transform:scale(1.15); }
+.swatch-hint{ font-size:11.5px; color:var(--ink-dim); margin-top:10px; }
+
+/* ---------- 2. speed comparison ---------- */
+.speed-row{ display:flex; gap:20px; flex-wrap:wrap; }
+.speed-box{ flex:1; min-width:260px; background:var(--board-bg); border-radius:14px; padding:20px; position:relative; height:120px; overflow:hidden; border:1px solid var(--card-border); }
+.speed-label{ position:absolute; top:10px; left:14px; font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-dim); }
+.speed-die{ width:44px; height:44px; border-radius:9px; background:#fff; position:absolute; top:50%; left:20px; margin-top:-22px; box-shadow:0 3px 8px rgba(0,0,0,0.3); }
+.piece-dot{ width:28px; height:28px; border-radius:50%; background:var(--red); position:absolute; top:50%; margin-top:-14px; left:20px; box-shadow: inset 0 -3px 4px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.5); }
+@keyframes rattleOld{ 0%,100%{transform:rotate(0)} 20%{transform:rotate(-8deg)} 40%{transform:rotate(7deg)} 60%{transform:rotate(-5deg)} 80%{transform:rotate(4deg)} }
+@keyframes rattleNew{ 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 50%{transform:rotate(9deg)} 75%{transform:rotate(-6deg)} }
+.rattle-old.playing{ animation: rattleOld 0.6s ease 3; }
+.rattle-new.playing{ animation: rattleNew 0.22s ease 3; }
+.slide-old.playing{ animation: slideOld 3.2s linear forwards; }
+.slide-new.playing{ animation: slideNew 1.2s linear forwards; }
+@keyframes slideOld{ from{left:20px} to{left:calc(100% - 50px)} }
+@keyframes slideNew{ from{left:20px} to{left:calc(100% - 50px)} }
+.play-btn{ margin-top:18px; border:none; background:var(--accent); color:#fff; font-size:13px; font-weight:600; padding:9px 18px; border-radius:20px; cursor:pointer; }
+.play-btn:hover{ opacity:0.9; }
+.speed-note{ font-size:12px; color:var(--ink-dim); margin-top:6px; }
+
+/* ---------- 3. highlight ---------- */
+.board-mock{ background:var(--board-bg); border-radius:16px; padding:32px; display:flex; justify-content:center; gap:36px; flex-wrap:wrap; }
+.piece-demo{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+.piece{ width:52px; height:52px; border-radius:50%; box-shadow: inset 0 -4px 6px rgba(0,0,0,0.3), inset 0 3px 4px rgba(255,255,255,0.5), 0 3px 6px rgba(0,0,0,0.3); position:relative; }
+.piece.eligible{ animation: pulseGlow 1.1s ease-in-out infinite; }
+@keyframes pulseGlow{
+  0%,100%{ box-shadow: inset 0 -4px 6px rgba(0,0,0,0.3), inset 0 3px 4px rgba(255,255,255,0.5), 0 0 0 0 rgba(255,214,79,0.9), 0 0 14px 4px rgba(255,214,79,0.55); }
+  50%{ box-shadow: inset 0 -4px 6px rgba(0,0,0,0.3), inset 0 3px 4px rgba(255,255,255,0.5), 0 0 0 8px rgba(255,214,79,0), 0 0 22px 10px rgba(255,214,79,0.85); }
+}
+.piece-caption{ font-size:12px; color:var(--ink-dim); text-align:center; }
+.piece-caption b{ color:var(--ink); }
+
+/* ---------- 4. 3D dice ---------- */
+.dice-row{ display:flex; gap:32px; flex-wrap:wrap; align-items:flex-end; }
+.dice-col{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+.die-flat{ width:64px; height:64px; background:#fff; border-radius:13px; box-shadow:0 3px 8px rgba(0,0,0,0.3); position:relative; }
+.die-flat .pip{ position:absolute; width:9px; height:9px; border-radius:50%; background:#222; }
+.die-3d{ width:64px; height:64px; border-radius:13px; position:relative;
+  background:linear-gradient(155deg,#ffffff 0%, #f1f1f1 45%, #d8d8d8 100%);
+  box-shadow:
+    inset 0 3px 3px rgba(255,255,255,0.9),
+    inset 0 -6px 8px rgba(0,0,0,0.18),
+    0 8px 14px rgba(0,0,0,0.35),
+    0 2px 3px rgba(0,0,0,0.25);
+}
+.die-3d .pip{ position:absolute; width:10px; height:10px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #4a4a4a, #0a0a0a 70%);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.25);
+}
+.p-tl{top:12px;left:12px} .p-tr{top:12px;right:12px} .p-bl{bottom:12px;left:12px} .p-br{bottom:12px;right:12px}
+.p-cl{top:50%;left:12px;margin-top:-5px} .p-cr{top:50%;right:12px;margin-top:-5px} .p-c{top:50%;left:50%;margin-top:-5px;margin-left:-5px}
+.dice-caption{ font-size:12.5px; font-weight:700; }
+.dice-sub{ font-size:11px; color:var(--ink-dim); }
+
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC, not yet wired into the real app</p>
+  <h1>Round 1 tester feedback (Abhiroop)</h1>
+  <p class="lede">Four items reviewed below — check each one looks right before it gets built into the actual Flutter screens. Nothing here is live game code, just an interactive mock.</p>
+
+  <section>
+    <h2>1. Color choice for the human player <span class="tag new">setup screen</span></h2>
+    <p class="sub">Right now colors are fixed to slot order (Red, Green, Yellow, Blue), so a 2-player game always makes you Red vs a Green bot. Proposed fix: tap any color swatch on a slot to swap that slot's color with whichever slot currently has it.</p>
+    <div class="card">
+      <div class="slot">
+        <div class="token" id="tok0" style="background:var(--red)">A</div>
+        <div class="slot-info">
+          <div class="slot-name">Abhiroop (You)</div>
+          <div class="slot-role" id="role0">Red</div>
+        </div>
+        <div class="swatches" data-slot="0">
+          <div class="swatch active" style="background:var(--red)" data-color="Red"></div>
+          <div class="swatch" style="background:var(--green)" data-color="Green"></div>
+          <div class="swatch" style="background:var(--yellow)" data-color="Yellow"></div>
+          <div class="swatch" style="background:var(--blue)" data-color="Blue"></div>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="token" id="tok1" style="background:var(--green)">🤖</div>
+        <div class="slot-info">
+          <div class="slot-name">Green Bot</div>
+          <div class="slot-role" id="role1">Green</div>
+        </div>
+      </div>
+      <p class="swatch-hint">Tap a swatch above to try it — the two slots swap colors instantly, names/bot status stay put.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Faster dice roll + piece movement</h2>
+    <p class="sub">Side by side: current speed vs proposed speed. Dice rattle drops from ~1.8s to ~0.66s; a piece walking 5 spaces drops from ~1.9s (380ms/step) to ~0.7s (140ms/step).</p>
+    <div class="speed-row">
+      <div class="card" style="flex:1;min-width:280px;">
+        <div class="speed-box">
+          <div class="speed-label">Current</div>
+          <div class="speed-die rattle-old" id="dieOld"></div>
+        </div>
+        <button class="play-btn" onclick="playRattle('dieOld','rattleOld', 1800)">▶ Play current rattle</button>
+        <div class="speed-note">~1.8s total, 70ms per face-change tick</div>
+      </div>
+      <div class="card" style="flex:1;min-width:280px;">
+        <div class="speed-box">
+          <div class="speed-label">Proposed</div>
+          <div class="speed-die rattle-new" id="dieNew"></div>
+        </div>
+        <button class="play-btn" onclick="playRattle('dieNew','rattleNew', 660)">▶ Play proposed rattle</button>
+        <div class="speed-note">~0.66s total, faster tick rate</div>
+      </div>
+    </div>
+    <div class="speed-row" style="margin-top:20px;">
+      <div class="card" style="flex:1;min-width:280px;">
+        <div class="speed-box">
+          <div class="speed-label">Current — piece walk (5 steps)</div>
+          <div class="piece-dot slide-old" id="pieceOld"></div>
+        </div>
+        <button class="play-btn" onclick="playSlide('pieceOld','slide-old')">▶ Play current walk</button>
+      </div>
+      <div class="card" style="flex:1;min-width:280px;">
+        <div class="speed-box">
+          <div class="speed-label">Proposed — piece walk (5 steps)</div>
+          <div class="piece-dot slide-new" id="pieceNew" style="background:var(--blue)"></div>
+        </div>
+        <button class="play-btn" onclick="playSlide('pieceNew','slide-new')">▶ Play proposed walk</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Highlight all eligible pieces after a roll</h2>
+    <p class="sub">Red rolls a 5. Of Red's 4 pieces, 2 can legally move 5 spaces (one can exit base, one is mid-board with a clear path) — both pulse with a gold glow so the choice is obvious at a glance. The other 2 (blocked / would overshoot) stay plain.</p>
+    <div class="board-mock">
+      <div class="piece-demo"><div class="piece eligible" style="background:var(--red)"></div><div class="piece-caption"><b>Eligible</b><br>can exit base</div></div>
+      <div class="piece-demo"><div class="piece eligible" style="background:var(--red)"></div><div class="piece-caption"><b>Eligible</b><br>clear path +5</div></div>
+      <div class="piece-demo"><div class="piece" style="background:var(--red);opacity:0.55"></div><div class="piece-caption">Not eligible<br>own piece blocks path</div></div>
+      <div class="piece-demo"><div class="piece" style="background:var(--red);opacity:0.55"></div><div class="piece-caption">Not eligible<br>already home</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. 3D-styled dice</h2>
+    <p class="sub">Current die is a flat white square with black dots. Proposed: subtle bevel gradient, inset highlight/shadow on the body, and pips with their own tiny gradient + inset shadow so they read as carved rather than painted on.</p>
+    <div class="dice-row">
+      <div class="dice-col">
+        <div class="die-flat">
+          <div class="pip" style="top:10px;left:10px"></div>
+          <div class="pip" style="top:10px;right:10px"></div>
+          <div class="pip" style="bottom:10px;left:10px"></div>
+          <div class="pip" style="bottom:10px;right:10px"></div>
+          <div class="pip" style="top:50%;left:50%;margin:-4.5px 0 0 -4.5px"></div>
+        </div>
+        <div class="dice-caption">Current</div>
+        <div class="dice-sub">flat, rolling face = 5</div>
+      </div>
+      <div class="dice-col">
+        <div class="die-3d">
+          <div class="pip p-tl"></div><div class="pip p-tr"></div>
+          <div class="pip p-bl"></div><div class="pip p-br"></div>
+          <div class="pip p-c"></div>
+        </div>
+        <div class="dice-caption">Proposed</div>
+        <div class="dice-sub">3D bevel, rolling face = 5</div>
+      </div>
+      <div class="dice-col">
+        <div class="die-3d">
+          <div class="pip p-tl"></div><div class="pip p-tr"></div>
+          <div class="pip p-cl"></div><div class="pip p-cr"></div>
+          <div class="pip p-bl"></div><div class="pip p-br"></div>
+        </div>
+        <div class="dice-caption">Proposed</div>
+        <div class="dice-sub">3D bevel, rolling face = 6</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>POC only — nothing here is wired into the real app yet. Say go and I'll build these into the actual setup screen, board, and dice widgets.</footer>
+</div>
+<script>
+function playRattle(id, cls, ms){
+  const el = document.getElementById(id);
+  el.classList.remove('playing');
+  void el.offsetWidth;
+  el.classList.add('playing');
+  setTimeout(()=>el.classList.remove('playing'), ms+50);
+}
+function playSlide(id, cls){
+  const el = document.getElementById(id);
+  el.classList.remove(cls+'-playing');
+  el.style.left = '20px';
+  el.classList.remove('playing');
+  void el.offsetWidth;
+  el.classList.add('playing');
+}
+document.querySelectorAll('.swatches .swatch').forEach(sw=>{
+  sw.addEventListener('click', ()=>{
+    const group = sw.parentElement;
+    const chosenColor = sw.dataset.color;
+    const colorVar = {Red:'var(--red)',Green:'var(--green)',Yellow:'var(--yellow)',Blue:'var(--blue)'}[chosenColor];
+    const tok0 = document.getElementById('tok0');
+    const role0 = document.getElementById('role0');
+    const tok1 = document.getElementById('tok1');
+    const role1 = document.getElementById('role1');
+    const otherColor = role0.textContent === chosenColor ? null : role0.textContent;
+    // swap: slot0 becomes chosenColor, slot1 becomes whatever slot0 was
+    const prevSlot0Color = role0.textContent;
+    tok0.style.background = colorVar;
+    role0.textContent = chosenColor;
+    tok1.style.background = {Red:'var(--red)',Green:'var(--green)',Yellow:'var(--yellow)',Blue:'var(--blue)'}[prevSlot0Color] || colorVar;
+    role1.textContent = chosenColor === prevSlot0Color ? role1.textContent : prevSlot0Color;
+    group.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+    sw.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

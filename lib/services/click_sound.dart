@@ -2,10 +2,10 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'audio_player_pool.dart';
 import 'wav_encoder.dart';
 
 /// A short synthesized "bouncy pop" (a quick downward pitch sweep) played
@@ -20,7 +20,7 @@ import 'wav_encoder.dart';
 /// under the hood) -- while plain MediaPlayer worked correctly. SoundPool
 /// would have been faster, but working audio beats a faster silent one.
 class ClickSound {
-  static final AudioPlayer _player = AudioPlayer();
+  static final AudioPlayerPool _pool = AudioPlayerPool();
   static Future<void>? _preparing;
   static String? _filePath;
 
@@ -35,7 +35,7 @@ class ClickSound {
       await file.writeAsBytes(_generateClickWav(), flush: true);
     }
     _filePath = file.path;
-    await _player.setVolume(1.0);
+    await _pool.setVolume(1.0);
     debugPrint('ClickSound: source ready at ${file.path}');
   }
 
@@ -48,12 +48,7 @@ class ClickSound {
   static Future<void> play() async {
     try {
       await _ensurePrepared();
-      // Once a MediaPlayer-backed clip finishes it moves to
-      // PlayerState.completed, and resume() alone doesn't reliably restart
-      // it from there (this is why only the very first click worked).
-      // Calling play(source) fresh each time forces a real restart.
-      await _player.stop();
-      await _player.play(DeviceFileSource(_filePath!));
+      await _pool.play(_filePath!);
     } catch (e, st) {
       debugPrint('ClickSound: play FAILED: $e\n$st');
       _preparing = null; // allow a retry on the next play()
