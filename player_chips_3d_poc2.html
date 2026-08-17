@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Player chips — round 2</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:820px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 30px; }
+.note{ background:#fff; border:1px solid var(--card-border); border-left:3px solid var(--accent); border-radius:10px; padding:14px 18px; margin:0 0 32px; max-width:80ch; font-size:13px; line-height:1.6; }
+:root[data-theme="dark"] .note, @media (prefers-color-scheme:dark){ .note{ background:#1a1f2b; } }
+.stage{
+  border-radius:16px; padding:26px 18px;
+  background: linear-gradient(160deg,#1c2c4e,#0f1930 70%);
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+}
+
+.chip{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:6px 13px 6px 6px; border-radius:18px;
+  transition: transform 0.1s ease;
+}
+.chip.active{ transform: translateY(-1px); }
+
+.chip.red{ background:linear-gradient(155deg,#ffe3e0 0%, #ff8177 100%); box-shadow: inset 0 2px 2px rgba(255,255,255,0.85), inset 0 -4px 6px rgba(0,0,0,0.15), 0 2px 5px rgba(0,0,0,0.25); }
+.chip.green{ background:linear-gradient(155deg,#dff6e7 0%, #7fd9a0 100%); box-shadow: inset 0 2px 2px rgba(255,255,255,0.85), inset 0 -4px 6px rgba(0,0,0,0.15), 0 2px 5px rgba(0,0,0,0.25); }
+.chip.blue{ background:linear-gradient(155deg,#dcf2fc 0%, #7fcbee 100%); box-shadow: inset 0 2px 2px rgba(255,255,255,0.85), inset 0 -4px 6px rgba(0,0,0,0.15), 0 2px 5px rgba(0,0,0,0.25); }
+.chip.yellow{ background:linear-gradient(155deg,#fff6d6 0%, #ffe082 100%); box-shadow: inset 0 2px 2px rgba(255,255,255,0.85), inset 0 -4px 6px rgba(0,0,0,0.15), 0 2px 5px rgba(0,0,0,0.25); }
+
+.chip.dim{ opacity:0.55; filter:saturate(0.6); }
+.chip.active{ box-shadow: inset 0 2px 2px rgba(255,255,255,0.9), inset 0 -4px 6px rgba(0,0,0,0.15), 0 0 0 2px rgba(255,255,255,0.9), 0 5px 12px rgba(0,0,0,0.4); }
+
+.chip .avatar{
+  width:20px; height:20px; border-radius:50%; position:relative;
+  box-shadow: inset 0 -3px 4px rgba(0,0,0,0.3), inset 0 2px 2px rgba(255,255,255,0.5), 0 1px 2px rgba(0,0,0,0.2);
+}
+.avatar.red{ background:radial-gradient(circle at 35% 30%, #ff8177, #c8291a 75%); }
+.avatar.green{ background:radial-gradient(circle at 35% 30%, #6fe0a0, #0b8a3e 75%); }
+.avatar.blue{ background:radial-gradient(circle at 35% 30%, #6fc8f0, #0871a8 75%); }
+.avatar.yellow{ background:radial-gradient(circle at 35% 30%, #ffe680, #d4a30a 75%); }
+
+.chip span{ font-size:11.5px; font-weight:800; }
+.chip.red span{ color:#7a1a0e; } .chip.green span{ color:#0b4a22; } .chip.blue span{ color:#063a56; } .chip.yellow span{ color:#6b5208; }
+.chip.dim span{ font-weight:600; }
+
+.readout{ font-size:12px; color:var(--ink-dim); margin-top:10px; }
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC round 2, not yet wired in</p>
+  <h1>Player chips — take two</h1>
+  <p class="lede">Round 1's dark navy-on-navy chips blended into the background and felt flat. This drops that entirely and reuses the exact tint recipe from the player-colored dice you already liked -- each chip is tinted in its own player's color (light pastel top-left → deeper tint bottom-right), same bevel highlight/shadow, dark-on-light text for contrast instead of white-on-dark.</p>
+  <div class="note">Active player lifts slightly and gets a bright ring + stronger shadow; the others sit dimmer/desaturated rather than fully flat -- so whose turn it is reads instantly even with all 4 colors on screen at once.</div>
+
+  <div class="stage">
+    <span class="chip red active"><span class="avatar red"></span><span>Red Bot</span></span>
+    <span class="chip green dim"><span class="avatar green"></span><span>Green Bot</span></span>
+    <span class="chip yellow dim"><span class="avatar yellow"></span><span>Yellow</span></span>
+    <span class="chip blue dim"><span class="avatar blue"></span><span>Blue</span></span>
+  </div>
+
+  <footer>POC only. If this direction lands, say go and I'll build it into the real PlayerChipsRow (still wraps 2-per-row for 3-4 players).</footer>
+</div>
+</body>
+</html>

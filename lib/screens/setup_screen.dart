@@ -148,60 +148,207 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          SegmentedButton<int>(
-                            segments: const [
-                              ButtonSegment(value: 2, label: Text('2')),
-                              ButtonSegment(value: 3, label: Text('3')),
-                              ButtonSegment(value: 4, label: Text('4')),
-                            ],
-                            selected: {_playerCount},
-                            onSelectionChanged: (s) =>
-                                setState(() => _playerCount = s.first),
-                            style: ButtonStyle(
-                              foregroundColor: WidgetStateProperty.resolveWith(
-                                (states) =>
-                                    states.contains(WidgetState.selected)
-                                    ? Colors.black
-                                    : Colors.white,
-                              ),
-                            ),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 240),
+                          child: _CountSelector3D(
+                            value: _playerCount,
+                            onChanged: (v) => setState(() => _playerCount = v),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: activeSlots.length,
-                        itemBuilder: (context, index) => _SlotCard(
-                          slot: activeSlots[index],
-                          onPickPhoto: () => _pickPhoto(activeSlots[index]),
-                          onChanged: () => setState(() {}),
-                          onColorSelect: (color) =>
-                              _swapColor(activeSlots[index], color),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: _startGame,
-                          child: const Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text(
-                              'Start Game',
-                              style: TextStyle(fontSize: 16),
+                        itemBuilder: (context, index) => Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 240),
+                            child: _SlotCard(
+                              slot: activeSlots[index],
+                              onPickPhoto: () => _pickPhoto(activeSlots[index]),
+                              onChanged: () => setState(() {}),
+                              onColorSelect: (color) => _swapColor(activeSlots[index], color),
                             ),
                           ),
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 240),
+                          child: _GlossyButton(label: 'Start Game', onTap: _startGame),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A glossy inset-track segmented control for the 2/3/4 player-count
+/// choice -- a real physical-toggle look (dark recessed track, raised
+/// cream tab on the selected value) instead of Material's flat
+/// [SegmentedButton].
+class _CountSelector3D extends StatelessWidget {
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  const _CountSelector3D({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 4, blurStyle: BlurStyle.inner),
+        ],
+      ),
+      child: Row(
+        children: [
+          for (final count in [2, 3, 4]) ...[
+            Expanded(child: _segment(count)),
+            if (count != 4) const SizedBox(width: 6),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _segment(int count) {
+    final selected = count == value;
+    return GestureDetector(
+      onTap: () => onChanged(count),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: selected
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFFFDF7), Color(0xFFE8DDC0)],
+                )
+              : null,
+          boxShadow: selected
+              ? [
+                  BoxShadow(color: Colors.white.withValues(alpha: 0.9), blurRadius: 2, blurStyle: BlurStyle.inner, offset: const Offset(0, 1)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 3, blurStyle: BlurStyle.inner, offset: const Offset(0, -2)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 3)),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: selected ? const Color(0xFF7A5A1F) : Colors.white.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A compact 3D on/off toggle in the same bevel language as the rest of
+/// the app, replacing Material's flat [Switch].
+class _Toggle3D extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _Toggle3D({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 30,
+        height: 18,
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(9),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: value ? const [Color(0xFF4A5F92), Color(0xFF2A3E66)] : const [Color(0xFFB9C4D6), Color(0xFF8F9DB4)],
+          ),
+          boxShadow: const [
+            BoxShadow(color: Colors.black26, blurRadius: 3, blurStyle: BlurStyle.inner, offset: Offset(0, 1)),
+          ],
+        ),
+        child: AnimatedAlign(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white, Color(0xFFDBE2EE)],
+              ),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 2, offset: const Offset(0, 1))],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A glossy navy pill button, matching the leave-game dialog's button
+/// style, used for the primary "Start Game" action.
+class _GlossyButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _GlossyButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF4A5F92), Color(0xFF1C2C4E)],
+              ),
+              boxShadow: [
+                BoxShadow(color: Colors.white.withValues(alpha: 0.3), blurRadius: 3, blurStyle: BlurStyle.inner, offset: const Offset(0, 2)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6, blurStyle: BlurStyle.inner, offset: const Offset(0, -5)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0, 5)),
+              ],
+            ),
+            child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          ),
         ),
       ),
     );
@@ -231,14 +378,11 @@ class _SlotCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [Color(0xFFC7E0FA), Color(0xFF8FBEF0)],
         ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF143264).withValues(alpha: 0.18),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
+          BoxShadow(color: Colors.white.withValues(alpha: 0.7), blurRadius: 2, blurStyle: BlurStyle.inner, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 6, blurStyle: BlurStyle.inner, offset: const Offset(0, -6)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4)),
         ],
       ),
       child: Padding(
@@ -253,34 +397,37 @@ class _SlotCard extends StatelessWidget {
                   onTap: slot.isHuman ? onPickPhoto : null,
                   child: PieceAvatar(
                     color: slot.color,
-                    size: 42,
+                    size: 34,
                     photoPath: slot.photoPath,
-                    initial: slot.name.isNotEmpty
-                        ? slot.name[0].toUpperCase()
-                        : '?',
+                    initial: slot.name.isNotEmpty ? slot.name[0].toUpperCase() : '?',
                     isBot: !slot.isHuman,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     for (final color in PlayerColor.values)
                       Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: 6),
                         child: GestureDetector(
                           onTap: () => onColorSelect(color),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 120),
-                            width: 26,
-                            height: 26,
+                            width: 21,
+                            height: 21,
                             decoration: BoxDecoration(
-                              color: color.material,
                               shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                center: const Alignment(-0.3, -0.3),
+                                colors: [Color.lerp(color.material, Colors.white, 0.45)!, color.material],
+                              ),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black26, blurRadius: 3, blurStyle: BlurStyle.inner, offset: Offset(0, -2)),
+                                BoxShadow(color: Colors.white54, blurRadius: 2, blurStyle: BlurStyle.inner, offset: Offset(0, 1.5)),
+                              ],
                               border: Border.all(
-                                color: color == slot.color
-                                    ? Colors.black87
-                                    : Colors.white,
+                                color: color == slot.color ? Colors.black87 : Colors.white,
                                 width: color == slot.color ? 3 : 1.5,
                               ),
                             ),
@@ -289,18 +436,15 @@ class _SlotCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const Spacer(),
-                const Text('Bot', style: TextStyle(fontSize: 12)),
-                Transform.scale(
-                  scale: 0.8,
-                  child: Switch(
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    value: !slot.isHuman,
-                    onChanged: (isBot) {
-                      slot.isHuman = !isBot;
-                      onChanged();
-                    },
-                  ),
+                const SizedBox(width: 6),
+                const Text('Bot', style: TextStyle(fontSize: 11)),
+                const SizedBox(width: 5),
+                _Toggle3D(
+                  value: !slot.isHuman,
+                  onChanged: (isBot) {
+                    slot.isHuman = !isBot;
+                    onChanged();
+                  },
                 ),
               ],
             ),

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Setup screen — 3D redesign POC</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:900px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 30px; }
+.note{ background:#fff; border:1px solid var(--card-border); border-left:3px solid var(--accent); border-radius:10px; padding:14px 18px; margin:0 0 32px; max-width:80ch; font-size:13px; line-height:1.6; }
+:root[data-theme="dark"] .note, @media (prefers-color-scheme:dark){ .note{ background:#1a1f2b; } }
+
+.phone{
+  width:320px; margin:0 auto; border-radius:28px;
+  background: linear-gradient(160deg,#243c68,#12213e 70%);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+  padding:22px 16px 26px;
+  display:flex; flex-direction:column; align-items:center;
+}
+.segwrap, .startbtn{ align-self:stretch; }
+.appbar{ color:#fff; font-size:22px; font-weight:600; margin-bottom:18px; }
+
+/* 3D segmented selector */
+.segwrap{
+  display:flex; gap:6px; margin-bottom:20px; background:rgba(0,0,0,0.2); padding:5px; border-radius:16px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.35);
+}
+.seg{
+  flex:1; text-align:center; padding:9px 0; border-radius:12px; color:rgba(255,255,255,0.6); font-size:14px; font-weight:700;
+}
+.seg.active{
+  background:linear-gradient(160deg,#fffdf7,#e8ddc0);
+  color:#7a5a1f;
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.9), inset 0 -3px 5px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* 3D slot card */
+.slot{
+  border-radius:14px; padding:8px 10px; margin-bottom:8px; position:relative;
+  background:linear-gradient(160deg,#c7e0fa,#8fbef0);
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.7), inset 0 -6px 9px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.3);
+  width:fit-content; max-width:100%;
+}
+.slot-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.avatar3d{
+  width:30px; height:30px; border-radius:50%; position:relative; flex:0 0 auto;
+  box-shadow: inset 0 -4px 5px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.6), 0 3px 6px rgba(0,0,0,0.3);
+  display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px;
+}
+.avatar3d.red{ background:radial-gradient(circle at 35% 30%, #ff8177,#c8291a 75%); }
+.avatar3d.green{ background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%); }
+.name-label{ color:#1a2a4a; font-weight:700; font-size:13.5px; }
+.swatches{ display:flex; gap:6px; }
+.dot3d{ width:17px; height:17px; border-radius:50%; box-shadow: inset 0 -3px 4px rgba(0,0,0,0.3), inset 0 2px 2px rgba(255,255,255,0.5); }
+.dot3d.red{ background:radial-gradient(circle at 35% 30%, #ff8177,#c8291a 75%); border:2.5px solid rgba(0,0,0,0.6); }
+.dot3d.green{ background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%); border:1.5px solid rgba(255,255,255,0.7); }
+.dot3d.yellow{ background:radial-gradient(circle at 35% 30%, #ffe680,#d4a30a 75%); border:1.5px solid rgba(255,255,255,0.7); }
+.dot3d.blue{ background:radial-gradient(circle at 35% 30%, #6fc8f0,#0871a8 75%); border:1.5px solid rgba(255,255,255,0.7); }
+.bot-toggle{ display:flex; align-items:center; gap:6px; color:#1a2a4a; font-size:12px; font-weight:600; margin-left:14px; }
+.switch3d{
+  width:34px; height:19px; border-radius:10px; position:relative;
+  background:linear-gradient(160deg,#b9c4d6,#8f9db4);
+  box-shadow: inset 0 2px 3px rgba(0,0,0,0.3);
+}
+.switch3d .knob{
+  width:15px; height:15px; border-radius:50%; position:absolute; top:2px; left:2px;
+  background:linear-gradient(160deg,#fff,#dbe2ee);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+.field3d{
+  background:rgba(255,255,255,0.5); border-radius:8px; padding:5px 9px; color:#1a2a4a; font-size:12px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.12);
+}
+
+.startbtn{
+  margin-top:16px; text-align:center; padding:14px 0; border-radius:22px; color:#fff; font-weight:800; font-size:15px;
+  background:linear-gradient(160deg,#4a5f92,#2a3e66 70%,#1c2c4e);
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.3), inset 0 -5px 7px rgba(0,0,0,0.3), 0 8px 16px rgba(20,30,55,0.5);
+}
+
+.stage{ display:flex; justify-content:center; margin:34px 0; }
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC, not yet wired in</p>
+  <h1>Setup screen ("New Game"), 3D redesign</h1>
+  <p class="lede">Splash's extruded gold title didn't land, so nothing that dramatic here either -- this stays about weight and depth on the interactive pieces, not a hero logo moment.</p>
+  <div class="note">What's changed: the 2/3/4 selector is now a real inset-track glossy segmented control (like a physical toggle) instead of flat pill buttons. Slot cards get a stronger bevel <strong>and now hug their own content width</strong> instead of stretching to fill the full list row -- that's what was leaving ~130-180dp of dead space no matter how the row's internal items were arranged. Avatars and color swatches get the same glossy radial-gradient body already used for the dice/pieces. The Bot switch becomes a 3D toggle with a raised knob. Start Game stays full-width (it's a primary action button, not a content row, so it should still span the screen).</div>
+
+  <div class="stage">
+    <div class="phone">
+      <div class="appbar">New Game</div>
+      <div class="segwrap">
+        <div class="seg">2</div>
+        <div class="seg">3</div>
+        <div class="seg active">4</div>
+      </div>
+      <div class="slot">
+        <div class="slot-row">
+          <div class="avatar3d red">R</div>
+          <div class="swatches">
+            <div class="dot3d red"></div>
+            <div class="dot3d green"></div>
+            <div class="dot3d yellow"></div>
+            <div class="dot3d blue"></div>
+          </div>
+          <div class="bot-toggle">Bot <div class="switch3d"><div class="knob"></div></div></div>
+        </div>
+        <div class="field3d">Player 1</div>
+      </div>
+      <div class="slot">
+        <div class="slot-row">
+          <div class="avatar3d green">G</div>
+          <div class="swatches">
+            <div class="dot3d red"></div>
+            <div class="dot3d green"></div>
+            <div class="dot3d yellow"></div>
+            <div class="dot3d blue"></div>
+          </div>
+          <div class="bot-toggle">Bot <div class="switch3d"><div class="knob"></div></div></div>
+        </div>
+        <div class="field3d">Player 2</div>
+      </div>
+      <div class="startbtn">Start Game</div>
+    </div>
+  </div>
+
+  <footer>POC only. Say go and I'll build this into the real SetupScreen/_SlotCard.</footer>
+</div>
+</body>
+</html>

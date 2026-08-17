@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Splash screen — full 3D redesign POC</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:900px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 30px; }
+.note{ background:#fff; border:1px solid var(--card-border); border-left:3px solid var(--accent); border-radius:10px; padding:14px 18px; margin:0 0 32px; max-width:80ch; font-size:13px; line-height:1.6; }
+:root[data-theme="dark"] .note, @media (prefers-color-scheme:dark){ .note{ background:#1a1f2b; } }
+
+/* Phone-shaped stage */
+.phone{
+  width:300px; height:600px; margin:0 auto; border-radius:32px;
+  background: radial-gradient(500px 300px at 25% 0%, #24365e, #0f1930 65%);
+  position:relative; overflow:hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.phone::before{
+  content:""; position:absolute; inset:0;
+  background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 36px), repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 36px);
+}
+
+.dice-cluster{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:34px; position:relative; z-index:2; }
+.stage-shadow{
+  position:absolute; width:180px; height:26px; border-radius:50%;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.45), transparent 70%);
+  bottom:-16px; left:50%; transform:translateX(-50%);
+}
+.die3d{ width:64px; height:64px; border-radius:15px; position:relative; }
+.die3d .pip{ position:absolute; width:9px; height:9px; border-radius:50%; }
+.p-tl{top:12px;left:12px} .p-tr{top:12px;right:12px} .p-bl{bottom:12px;left:12px} .p-br{bottom:12px;right:12px}
+.p-cl{top:50%;left:12px;margin-top:-4.5px} .p-cr{top:50%;right:12px;margin-top:-4.5px} .p-c{top:50%;left:50%;margin-top:-4.5px;margin-left:-4.5px}
+.die-red{ background:linear-gradient(155deg,#ffe3e0,#ff8177); box-shadow: inset 0 3px 3px rgba(255,255,255,0.8), inset 0 -6px 8px rgba(0,0,0,0.2), 0 8px 14px rgba(0,0,0,0.4); }
+.die-red .pip{ background:radial-gradient(circle at 35% 30%, #a83a2c,#4a0f08 70%); }
+.die-green{ background:linear-gradient(155deg,#dff6e7,#7fd9a0); box-shadow: inset 0 3px 3px rgba(255,255,255,0.8), inset 0 -6px 8px rgba(0,0,0,0.2), 0 8px 14px rgba(0,0,0,0.4); }
+.die-green .pip{ background:radial-gradient(circle at 35% 30%, #1f7a45,#0b3d1f 70%); }
+.die-yellow{ background:linear-gradient(155deg,#fff6d6,#ffe082); box-shadow: inset 0 3px 3px rgba(255,255,255,0.8), inset 0 -6px 8px rgba(0,0,0,0.2), 0 8px 14px rgba(0,0,0,0.4); }
+.die-yellow .pip{ background:radial-gradient(circle at 35% 30%, #a37f10,#5c4708 70%); }
+.die-blue{ background:linear-gradient(155deg,#dcf2fc,#7fcbee); box-shadow: inset 0 3px 3px rgba(255,255,255,0.8), inset 0 -6px 8px rgba(0,0,0,0.2), 0 8px 14px rgba(0,0,0,0.4); }
+.die-blue .pip{ background:radial-gradient(circle at 35% 30%, #0d5a80,#052e40 70%); }
+
+.title3d{
+  font-size:38px; font-weight:900; letter-spacing:-0.01em; position:relative; z-index:2;
+  color:#ffd166;
+  text-shadow:
+    0 1px 0 #e6a930,
+    0 2px 0 #d99a1f,
+    0 3px 0 #cc8c12,
+    0 4px 0 #bf7e08,
+    0 5px 0 #b27000,
+    0 6px 0 #a56300,
+    0 7px 8px rgba(0,0,0,0.6);
+}
+.tagline{
+  margin-top:10px; font-size:12.5px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
+  color:rgba(255,255,255,0.55); position:relative; z-index:2;
+}
+
+.stage{ display:flex; justify-content:center; margin:34px 0; }
+.caption{ text-align:center; font-size:12.5px; color:var(--ink-dim); margin-top:14px; }
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC, not yet wired in</p>
+  <h1>Splash screen, full 3D redesign</h1>
+  <p class="lede">Everything on the splash now shares one bevel/extrusion language: the dice keep their existing glossy 3D look, but now sit on a soft ground shadow (like they're actually resting on a surface), and the title gets a real carved/extruded 3D treatment instead of flat text -- built from stacked shadow layers so it reads as solid gold letters with depth, not a flat logo.</p>
+  <div class="note">The tumble-in animation itself is unchanged (still flies in, lands, confetti) -- this POC is a static "landed" frame showing the new title treatment and grounding shadow, since that's what's actually new here.</div>
+
+  <div class="stage">
+    <div class="phone">
+      <div class="dice-cluster">
+        <div class="die3d die-red"><div class="pip p-tl"></div><div class="pip p-tr"></div><div class="pip p-bl"></div><div class="pip p-br"></div></div>
+        <div class="die3d die-green"><div class="pip p-c"></div></div>
+        <div class="die3d die-yellow"><div class="pip p-tl"></div><div class="pip p-c"></div><div class="pip p-br"></div></div>
+        <div class="die3d die-blue"><div class="pip p-tl"></div><div class="pip p-tr"></div><div class="pip p-cl"></div><div class="pip p-cr"></div><div class="pip p-bl"></div><div class="pip p-br"></div></div>
+        <div class="stage-shadow"></div>
+      </div>
+      <div class="title3d">Ludo Nexus</div>
+      <div class="tagline">Roll · Race · Rule the Board</div>
+    </div>
+  </div>
+  <p class="caption">Gold extruded title + grounded dice cluster, shown inside a phone-shaped frame for context.</p>
+
+  <footer>POC only. Say go and I'll build the title treatment + grounding shadow into the real splash screen (animation timing untouched).</footer>
+</div>
+</body>
+</html>

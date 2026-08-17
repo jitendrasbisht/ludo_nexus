@@ -92,15 +92,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  width: 340,
+                  width: 260,
                   height: 280,
                   child: Stack(
                     alignment: Alignment.center,
-                    // The dice tumble in from +-140px either side of this
-                    // 340-wide box, and confetti bursts out to ~160px --
-                    // both would get cut off by Stack's default hard-edge
-                    // clip while still mid-flight, reading as an instant
-                    // pop-in instead of a visible entrance.
+                    // The dice tumble in from +-70px either side of this
+                    // 260-wide box (kept modest so the tumble-in stays
+                    // within the screen on narrower phones instead of
+                    // starting off-edge), and confetti bursts out to
+                    // ~160px -- both would get cut off by Stack's default
+                    // hard-edge clip while still mid-flight, reading as an
+                    // instant pop-in instead of a visible entrance.
                     clipBehavior: Clip.none,
                     children: [
                       // Positioned off-screen but still genuinely painted
@@ -208,7 +210,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         final delay = i * 0.1;
         final raw = ((_tumbleController.value - delay) / (1 - delay)).clamp(0.0, 1.0);
         final eased = Curves.easeOutCubic.transform(raw);
-        final startX = fromLeft ? -140.0 : 140.0;
+        final startX = fromLeft ? -70.0 : 70.0;
         final dx = startX * (1 - eased);
         final rotations = fromLeft ? 3.2 : -3.2;
         // Zooms in from small to full size at the same time as the
