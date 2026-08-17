@@ -1,5 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 
+import 'sound_settings.dart';
+
 /// A small pool of alternating [AudioPlayer]s, used instead of a single
 /// player doing stop()-then-play() on every call.
 ///
@@ -27,6 +29,7 @@ class AudioPlayerPool {
   }
 
   Future<void> play(String filePath) async {
+    if (SoundSettings.muted) return;
     final player = _players[_next];
     _next = (_next + 1) % _players.length;
     await player.stop();

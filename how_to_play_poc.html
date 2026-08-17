@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>How to Play — POC</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:900px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 30px; }
+
+.phone{
+  width:320px; margin:0 auto; border-radius:28px; overflow:hidden;
+  background: linear-gradient(160deg,#243c68,#12213e 70%);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+}
+.appbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 14px; color:#fff; font-size:19px; font-weight:600; }
+.appbar .back{ font-size:20px; opacity:0.85; }
+.content{ padding:0 16px 20px; max-height:600px; overflow-y:auto; }
+
+.rule-card{
+  border-radius:14px; padding:14px 14px 14px 16px; margin-bottom:10px;
+  background:linear-gradient(160deg,#c7e0fa,#8fbef0);
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.7), inset 0 -6px 9px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.3);
+  display:flex; gap:12px; align-items:flex-start;
+}
+.rule-icon{
+  width:34px; height:34px; border-radius:10px; flex:0 0 auto; margin-top:1px;
+  display:flex; align-items:center; justify-content:center; font-size:17px;
+  background:linear-gradient(160deg,#4a5f92,#1c2c4e);
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.25), inset 0 -3px 4px rgba(0,0,0,0.3);
+}
+.rule-body h3{ margin:0 0 3px; font-size:13.5px; color:#12213e; font-weight:800; }
+.rule-body p{ margin:0; font-size:12px; line-height:1.5; color:#28406e; }
+
+.section-label{ font-size:11px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:rgba(255,255,255,0.5); margin:16px 0 8px 2px; }
+.section-label:first-child{ margin-top:2px; }
+
+.stage{ display:flex; justify-content:center; margin:34px 0; }
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC, not yet wired in</p>
+  <h1>"How to Play" screen</h1>
+  <p class="lede">A scrollable rules reference, same glossy-card language as the setup screen, reachable from a new icon on Setup (next to the sound toggle idea). Content matches your actual locked rules (bonus rolls, 3-in-a-row forfeit, continue after first finish) rather than generic Ludo rules.</p>
+
+  <div class="stage">
+    <div class="phone">
+      <div class="appbar"><span class="back">←</span> How to Play</div>
+      <div class="content">
+        <div class="section-label">Basics</div>
+        <div class="rule-card">
+          <div class="rule-icon">🎯</div>
+          <div class="rule-body"><h3>Goal</h3><p>Get all 4 of your pieces from your base, around the board, and into your home column before the others.</p></div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-icon">🎲</div>
+          <div class="rule-body"><h3>Starting a piece</h3><p>Pieces stay in base until you roll a 6 — that lets one piece step onto the board.</p></div>
+        </div>
+
+        <div class="section-label">Bonus Rolls</div>
+        <div class="rule-card">
+          <div class="rule-icon">✨</div>
+          <div class="rule-body"><h3>Roll again</h3><p>Rolling a 6, capturing an opponent, or getting a piece home all earn you another roll immediately.</p></div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-icon">⛔</div>
+          <div class="rule-body"><h3>Three in a row</h3><p>Chain three bonus rolls in a row (any mix of 6s, captures, finishes) and your turn ends immediately — no move on that third roll.</p></div>
+        </div>
+
+        <div class="section-label">Captures &amp; Safety</div>
+        <div class="rule-card">
+          <div class="rule-icon">💥</div>
+          <div class="rule-body"><h3>Capturing</h3><p>Land exactly on an opponent's piece (on a non-safe cell) and it's sent all the way back to their base.</p></div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-icon">✦</div>
+          <div class="rule-body"><h3>Safe cells</h3><p>Star-marked cells protect any piece sitting there — no captures can happen on them.</p></div>
+        </div>
+
+        <div class="section-label">Winning</div>
+        <div class="rule-card">
+          <div class="rule-icon">🏆</div>
+          <div class="rule-body"><h3>Play continues</h3><p>The match doesn't stop when someone finishes first — everyone keeps playing to settle 2nd, 3rd, and last place too.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>POC only. Say go and I'll build this as a real screen, linked from Setup.</footer>
+</div>
+</body>
+</html>

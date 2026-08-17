@@ -8,6 +8,7 @@ import '../models/player_color.dart';
 import '../services/capture_sound.dart';
 import '../services/click_sound.dart';
 import '../services/dice_roll_sound.dart';
+import '../services/sound_settings.dart';
 import '../widgets/app_background.dart';
 import '../widgets/board_widget.dart';
 import '../widgets/dice_widget.dart';
@@ -29,7 +30,9 @@ class _GameScreenState extends State<GameScreen> {
   bool _busy = false;
   String _statusText = '';
   final Map<Piece, Offset> _walkingFractions = {};
+  final Set<Piece> _fastWalkPieces = {};
   bool _diceSpinning = false;
+  bool get _soundMuted => SoundSettings.muted;
 
   /// True while the leave-game confirmation dialog is up. Bot turns check
   /// this between steps and freeze in place rather than continuing to play
@@ -159,7 +162,7 @@ class _GameScreenState extends State<GameScreen> {
       for (var i = 0; i < diceValue; i++) {
         ClickSound.play();
         if (i < diceValue - 1) {
-          await Future.delayed(const Duration(milliseconds: 70));
+          await Future.delayed(const Duration(milliseconds: 220));
         }
       }
       return;
@@ -173,25 +176,26 @@ class _GameScreenState extends State<GameScreen> {
         _walkingFractions[piece] = fractionForPiecePosition(piece.color, pos);
       });
       ClickSound.play();
-      await Future.delayed(const Duration(milliseconds: 150));
+      await Future.delayed(const Duration(milliseconds: 420));
     }
   }
 
   /// Walks a just-captured [piece] back from [fromPosition] to base (0) one
-  /// cell at a time, retracing the track it actually sits on instead of
-  /// sliding straight across the board to its base slot. The per-step delay
-  /// is budgeted against the distance so even a piece captured deep on the
-  /// track still finishes retreating in well under 2 seconds.
+  /// cell at a time -- 13, 12, 11, ..., 1, 0 -- retracing the exact track it
+  /// actually sits on instead of sliding straight across the board to its
+  /// base slot. Uses a steady per-step pace (not compressed against
+  /// distance) so every waypoint is genuinely reached; see the matching
+  /// `isWalking` tween-duration handling in [BoardWidget] for the other
+  /// half of what makes that visible instead of laggy.
   Future<void> _walkPieceBack(Piece piece, int fromPosition) async {
     if (fromPosition <= 0) return;
-    const totalBudgetMs = 1400;
-    final stepDelayMs = (totalBudgetMs / fromPosition).clamp(12, 140).round();
+    _fastWalkPieces.add(piece);
     for (var pos = fromPosition - 1; pos >= 0; pos--) {
       if (!mounted) return;
       setState(() {
         _walkingFractions[piece] = fractionForPiecePosition(piece.color, pos);
       });
-      await Future.delayed(Duration(milliseconds: stepDelayMs));
+      await Future.delayed(const Duration(milliseconds: 55));
     }
   }
 
@@ -221,6 +225,7 @@ class _GameScreenState extends State<GameScreen> {
       _walkingFractions.remove(piece);
       for (final cp in result.capturedPieces) {
         _walkingFractions.remove(cp);
+        _fastWalkPieces.remove(cp);
       }
       String message;
       if (result.justFinishedPlayer != null) {
@@ -328,6 +333,7 @@ class _GameScreenState extends State<GameScreen> {
       _walkingFractions.remove(piece);
       for (final cp in result.capturedPieces) {
         _walkingFractions.remove(cp);
+        _fastWalkPieces.remove(cp);
       }
       String message;
       if (result.justFinishedPlayer != null) {
@@ -392,6 +398,15 @@ class _GameScreenState extends State<GameScreen> {
           title: const Text('Ludo Nexus'),
           backgroundColor: const Color(0xFF2A3E66),
           foregroundColor: Colors.white,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: _SoundToggleButton(
+                muted: _soundMuted,
+                onTap: () => setState(() => SoundSettings.muted = !SoundSettings.muted),
+              ),
+            ),
+          ],
         ),
         body: AppBackground(
           child: SafeArea(
@@ -412,6 +427,7 @@ class _GameScreenState extends State<GameScreen> {
                         activeColor: current.color,
                         finishedRanks: finishedRanks,
                         walkingFractions: _walkingFractions,
+                        fastWalkPieces: _fastWalkPieces,
                         diceBuilder: (size) => GestureDetector(
                           onTap: _canHumanRoll ? _rollForHuman : null,
                           child: DiceWidget(
@@ -460,6 +476,62 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A compact glossy 3D circular button in the AppBar for toggling all
+/// in-game sound (dice roll, move clicks, captures) on/off, in the same
+/// bevel language as the dice/pieces rather than a plain icon button.
+class _SoundToggleButton extends StatelessWidget {
+  final bool muted;
+  final VoidCallback onTap;
+
+  const _SoundToggleButton({required this.muted, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: muted
+                  ? const [Color(0xFFB9C4D6), Color(0xFF8F9DB4)]
+                  : const [Color(0xFF4A5F92), Color(0xFF1C2C4E)],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.3),
+                blurRadius: 2,
+                blurStyle: BlurStyle.inner,
+                offset: const Offset(0, 1),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 4,
+                blurStyle: BlurStyle.inner,
+                offset: const Offset(0, -3),
+              ),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 3)),
+            ],
+          ),
+          child: Icon(
+            muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+            color: Colors.white,
+            size: 19,
           ),
         ),
       ),

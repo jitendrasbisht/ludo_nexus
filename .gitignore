@@ -49,3 +49,6 @@ app.*.map.json
 /android/upload-keystore.jks
 *.jks
 *.keystore
+
+# Release archive -- large local backups, not meant for git history
+/release_archive/

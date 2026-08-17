@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Background color options — round 2</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:1100px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 34px; }
+
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px; }
+.phone{ border-radius:24px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,0.4); }
+.appbar{ padding:14px 16px 12px; font-size:17px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.body{ padding:14px 16px 20px; }
+
+.slot{
+  border-radius:13px; padding:11px 12px; margin-bottom:9px;
+  background:linear-gradient(160deg,#c7e0fa,#8fbef0);
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.7), inset 0 -6px 9px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.25);
+  display:flex; align-items:center; gap:8px;
+}
+.avatar{ width:28px; height:28px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #ff8177,#c8291a 75%); box-shadow: inset 0 -3px 4px rgba(0,0,0,0.3), inset 0 2px 2px rgba(255,255,255,0.5); }
+.dots span{ display:inline-block; width:15px; height:15px; border-radius:50%; margin-right:4px; box-shadow: inset 0 -2px 3px rgba(0,0,0,0.3), inset 0 1.5px 1.5px rgba(255,255,255,0.5); }
+.d-red{ background:radial-gradient(circle at 35% 30%, #ff8177,#c8291a 75%); }
+.d-green{ background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%); }
+.d-yellow{ background:radial-gradient(circle at 35% 30%, #ffe680,#d4a30a 75%); }
+.d-blue{ background:radial-gradient(circle at 35% 30%, #6fc8f0,#0871a8 75%); }
+.name{ font-size:11px; color:#28406e; font-weight:600; }
+
+.bgF{ background:linear-gradient(160deg,#3fa9db,#1c6fa5 70%); color:#fff; } /* bright playful sky blue */
+.bgG{ background:linear-gradient(160deg,#fbf3df,#eddcae 70%); color:#4a3a1a; } /* cream, matches board */
+.bgH{ background:linear-gradient(155deg,#ff8a65,#e85d8a 45%,#7c4fd6 100%); color:#fff; } /* sunset gradient */
+.bgI{ background:linear-gradient(160deg,#1f8a7a,#0d4a42 70%); color:#fff; } /* teal */
+
+.label{ font-size:13px; font-weight:700; margin:12px 2px 4px; }
+.desc{ font-size:12px; color:var(--ink-dim); margin:0 0 0 2px; line-height:1.5; }
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC round 2, not yet wired in</p>
+  <h1>Background color options — lighter &amp; more vibrant</h1>
+  <p class="lede">Round 1 stayed dark/moody throughout, which may be why nothing landed. This round tries genuinely different moods -- bright, cream/light, and a bold gradient -- not just re-hued versions of the same dark formula.</p>
+
+  <div class="grid">
+    <div>
+      <div class="phone">
+        <div class="bgF">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">F · Bright sky blue</div>
+      <p class="desc">Playful, energetic, still cool-toned like the current navy but much lighter and friendlier.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="bgG">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">G · Cream (matches the board)</div>
+      <p class="desc">Same cream tone as the board itself -- the whole app becomes one continuous surface instead of a dark app around a light board.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="bgH">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">H · Sunset gradient</div>
+      <p class="desc">Coral → pink → violet. The boldest, most "game app" option -- most distinctive but also most opinionated.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="bgI">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">I · Teal</div>
+      <p class="desc">Fresh, still calm/dark-ish like navy but a clearly different hue family -- a safer middle ground between round 1 and the brighter options here.</p>
+    </div>
+  </div>
+
+  <footer>POC only. Tell me a letter, or describe the mood you're actually picturing (playful? elegant? matches the board? something else entirely) and I'll design toward that directly instead of guessing again.</footer>
+</div>
+</body>
+</html>

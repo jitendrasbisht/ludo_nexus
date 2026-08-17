@@ -42,8 +42,14 @@ class AiBot {
     final capture = _findCapturingMove(engine, options, diceValue);
     if (capture != null) return capture;
 
+    final threatened = _mostThreatenedPiece(engine, options);
+    if (threatened != null) return threatened;
+
     final exitingBase = options.where((p) => p.isInBase).toList();
     if (exitingBase.isNotEmpty) return exitingBase.first;
+
+    final safeMoves = _safeMoves(options, diceValue);
+    if (safeMoves.isNotEmpty) return _mostAdvanced(safeMoves);
 
     return _mostAdvanced(options);
   }
@@ -55,18 +61,56 @@ class AiBot {
     final capture = _findCapturingMove(engine, options, diceValue);
     if (capture != null) return capture;
 
-    final safeMoves = options.where((p) {
+    final threatened = _mostThreatenedPiece(engine, options);
+    if (threatened != null) return threatened;
+
+    final exitingBase = options.where((p) => p.isInBase).toList();
+    if (exitingBase.isNotEmpty) return exitingBase.first;
+
+    final safeMoves = _safeMoves(options, diceValue);
+    if (safeMoves.isNotEmpty) return _mostAdvanced(safeMoves);
+
+    return _mostAdvanced(options);
+  }
+
+  static List<Piece> _safeMoves(List<Piece> options, int diceValue) {
+    return options.where((p) {
       final newPos = p.isInBase ? 1 : p.position + diceValue;
       if (newPos < 1 || newPos > 52) return true; // home stretch/finish counts as safe
       final idx = BoardPath.globalIndex(p.color, newPos);
       return BoardPath.isSafeGlobalIndex(idx);
     }).toList();
-    if (safeMoves.isNotEmpty) return _mostAdvanced(safeMoves);
+  }
 
-    final exitingBase = options.where((p) => p.isInBase).toList();
-    if (exitingBase.isNotEmpty) return exitingBase.first;
+  /// Looks at the bot's own pieces (among [options]) that are *currently*
+  /// sitting somewhere an opponent could capture them next turn (1-6 steps
+  /// behind, on a non-safe cell) -- without this, the bot only ever reacts
+  /// to captures it can make itself, never to ones about to happen to it,
+  /// which read as it ignoring the board. Returns the piece under the most
+  /// immediate threat (fewest steps away for the nearest hunter), or null
+  /// if nothing in [options] is currently threatened.
+  static Piece? _mostThreatenedPiece(LudoEngine engine, List<Piece> options) {
+    Piece? best;
+    var bestDistance = 7;
+    for (final piece in options) {
+      if (!piece.isOnSharedTrack) continue;
+      final idx = BoardPath.globalIndex(piece.color, piece.position);
+      if (BoardPath.isSafeGlobalIndex(idx)) continue;
 
-    return _mostAdvanced(options);
+      for (final other in engine.players) {
+        if (other.color == piece.color) continue;
+        for (final otherPiece in other.pieces) {
+          if (!otherPiece.isOnSharedTrack) continue;
+          final otherIdx = BoardPath.globalIndex(otherPiece.color, otherPiece.position);
+          final distance = (idx - otherIdx) % BoardPath.trackLength;
+          if (distance >= 1 && distance <= 6 && distance < bestDistance) {
+            bestDistance = distance;
+            best = piece;
+          }
+        }
+      }
+    }
+    return best;
   }
 
   static Piece? _findCapturingMove(LudoEngine engine, List<Piece> options, int diceValue) {

@@ -437,7 +437,7 @@ class _SlotCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(width: 6),
-                const Text('Bot', style: TextStyle(fontSize: 11)),
+                const Text('Bot', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 const SizedBox(width: 5),
                 _Toggle3D(
                   value: !slot.isHuman,
@@ -465,7 +465,7 @@ class _SlotCard extends StatelessWidget {
                 isExpanded: true,
                 items: [
                   for (final d in BotDifficulty.values)
-                    DropdownMenuItem(value: d, child: Text(d.label)),
+                    DropdownMenuItem(value: d, child: Text(d.label, style: const TextStyle(fontSize: 12))),
                 ],
                 onChanged: (d) {
                   if (d != null) {

@@ -52,6 +52,15 @@ class BoardWidget extends StatelessWidget {
   /// a captured piece retreating at the same time).
   final Map<Piece, Offset> walkingFractions;
 
+  /// Pieces currently in [walkingFractions] whose steps arrive faster than
+  /// a normal walk (currently: the fast capture-retreat) -- these get a
+  /// short position tween so each waypoint is actually reached before the
+  /// next one arrives, instead of a longer tween lagging behind. Pieces
+  /// walking forward at the normal pace are *not* in this set, and get a
+  /// tween that matches their own slower step cadence so the motion stays
+  /// continuous instead of hopping then pausing between steps.
+  final Set<Piece> fastWalkPieces;
+
   /// Builds the dice widget for the given pixel size. Anchored on the
   /// board itself at [activeColor]'s own star/safe cell, and slides there
   /// as [activeColor] changes turn to turn.
@@ -65,6 +74,7 @@ class BoardWidget extends StatelessWidget {
     this.activeColor,
     this.finishedRanks = const {},
     this.walkingFractions = const {},
+    this.fastWalkPieces = const {},
     this.diceBuilder,
   });
 
@@ -159,10 +169,23 @@ class BoardWidget extends StatelessWidget {
 
             final center = BoardLayout.toCanvas(frac, side) + nudge;
             final movable = movablePieceKeys.contains(pieceKey(piece.color, piece.id));
+            // While a piece is being manually walked cell-by-cell, its
+            // tween needs to roughly match how fast new waypoints arrive --
+            // too slow and it lags behind, visually cutting straight to
+            // wherever the walk ends instead of tracing the path; too fast
+            // (relative to the step delay) and it hops to each waypoint
+            // then visibly pauses before the next one. Fast retreat steps
+            // get a short tween; normal forward steps get one close to
+            // their own slower cadence; a non-walking position change
+            // (e.g. snapping to the real engine position once a walk
+            // finishes) gets the slowest, smoothest transition.
+            final isFastWalking = fastWalkPieces.contains(piece);
+            final isWalking = walkingFractions.containsKey(piece);
+            final tweenMs = isFastWalking ? 45 : (isWalking ? 380 : 340);
 
             pieceWidgets.add(AnimatedPositioned(
               key: ValueKey('${piece.color.name}_${piece.id}'),
-              duration: const Duration(milliseconds: 340),
+              duration: Duration(milliseconds: tweenMs),
               curve: Curves.easeInOut,
               left: center.dx - effectiveSize / 2,
               top: center.dy - effectiveSize / 2,
@@ -204,7 +227,7 @@ class BoardWidget extends StatelessWidget {
           final c = BoardLayout.toCanvas(anchorFrac, side);
           diceOverlay = AnimatedPositioned(
             key: const ValueKey('dice_overlay'),
-            duration: const Duration(milliseconds: 400),
+            duration: const Duration(milliseconds: 750),
             curve: Curves.easeInOut,
             left: c.dx - overlaySize / 2,
             top: c.dy - overlaySize / 2,

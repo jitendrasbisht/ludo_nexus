@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Background color options — POC</title>
+<style>
+:root{
+  --page-bg:#eef1f6; --page-bg-2:#e2e7f0; --ink:#1b2333; --ink-dim:#5b6478;
+  --card-border:#d7dce6; --accent:#2a3e66;
+}
+:root[data-theme="dark"]{ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#12151c; --page-bg-2:#171b24; --ink:#e8ebf2; --ink-dim:#9aa3b8; --card-border:#2b3244; }
+}
+*{box-sizing:border-box;}
+body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:radial-gradient(1100px 550px at 12% -8%, var(--page-bg-2), transparent), var(--page-bg); color:var(--ink); padding:40px 28px 96px; }
+.wrap{ max-width:1100px; margin:0 auto; }
+.eyebrow{ font-size:12px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+h1{ font-size:clamp(22px,3vw,30px); margin:0 0 10px; letter-spacing:-0.01em; }
+.lede{ font-size:15px; line-height:1.6; color:var(--ink-dim); max-width:76ch; margin:0 0 34px; }
+
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px; }
+.phone{
+  border-radius:24px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,0.4);
+}
+.appbar{ padding:14px 16px 12px; color:#fff; font-size:17px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.body{ padding:14px 16px 20px; }
+
+.slot{
+  border-radius:13px; padding:11px 12px; margin-bottom:9px;
+  background:linear-gradient(160deg,#c7e0fa,#8fbef0);
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.7), inset 0 -6px 9px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.25);
+  display:flex; align-items:center; gap:8px;
+}
+.avatar{ width:28px; height:28px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #ff8177,#c8291a 75%); box-shadow: inset 0 -3px 4px rgba(0,0,0,0.3), inset 0 2px 2px rgba(255,255,255,0.5); }
+.dots span{ display:inline-block; width:15px; height:15px; border-radius:50%; margin-right:4px; box-shadow: inset 0 -2px 3px rgba(0,0,0,0.3), inset 0 1.5px 1.5px rgba(255,255,255,0.5); }
+.d-red{ background:radial-gradient(circle at 35% 30%, #ff8177,#c8291a 75%); }
+.d-green{ background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%); }
+.d-yellow{ background:radial-gradient(circle at 35% 30%, #ffe680,#d4a30a 75%); }
+.d-blue{ background:radial-gradient(circle at 35% 30%, #6fc8f0,#0871a8 75%); }
+.name{ font-size:11px; color:#28406e; font-weight:600; }
+
+.bgA{ background:linear-gradient(160deg,#2a3e66,#12213e 70%); } /* current navy */
+.bgB{ background:linear-gradient(160deg,#1f4d3d,#0d2a20 70%); } /* forest green */
+.bgC{ background:linear-gradient(160deg,#5a3a24,#2e1c10 70%); } /* warm wood/terracotta */
+.bgD{ background:linear-gradient(160deg,#4a2545,#210f1e 70%); } /* deep plum */
+.bgE{ background:linear-gradient(160deg,#3a3f47,#17191d 70%); } /* charcoal graphite */
+
+.label{ font-size:13px; font-weight:700; margin:12px 2px 4px; }
+.desc{ font-size:12px; color:var(--ink-dim); margin:0 0 0 2px; line-height:1.5; }
+footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--card-border); font-size:12.5px; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ludo Nexus — POC, not yet wired in</p>
+  <h1>Background color options</h1>
+  <p class="lede">Current navy (A) alongside four alternatives, all shown with the actual UI on top (slot cards, dice colors) so you can judge legibility, not just the color in isolation.</p>
+
+  <div class="grid">
+    <div>
+      <div class="phone">
+        <div class="bgA">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">A · Current navy</div>
+      <p class="desc">Cool, calm, works with every piece color. What you have now.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="bgB">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">B · Forest green</div>
+      <p class="desc">Card-table felt feel. Warmer/more "tabletop game" than navy; green pieces get a little less contrast against it.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="bgC">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">C · Warm wood/terracotta</div>
+      <p class="desc">Evokes a physical wooden board game table. Cozier, less "app-like" than navy.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="bgD">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">D · Deep plum</div>
+      <p class="desc">Playful, a bit more premium/night-mode feel. Untypical for Ludo but distinctive.</p>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="bgE">
+          <div class="appbar">← New Game</div>
+          <div class="body">
+            <div class="slot"><div class="avatar"></div><div><div class="dots"><span class="d-red"></span><span class="d-green"></span><span class="d-yellow"></span><span class="d-blue"></span></div></div></div>
+            <div class="slot"><div class="avatar" style="background:radial-gradient(circle at 35% 30%, #6fe0a0,#0b8a3e 75%)"></div><div class="name">Player 2</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="label">E · Charcoal graphite</div>
+      <p class="desc">Neutral, modern, lets the colorful pieces do all the talking. Closest to "premium dark mode."</p>
+    </div>
+  </div>
+
+  <footer>POC only. Say a letter and I'll apply it everywhere (splash, setup, game screen, AppBars) -- this touches a lot of files, so I want the direction confirmed once rather than iterating live in the app.</footer>
+</div>
+</body>
+</html>
