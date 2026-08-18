@@ -160,14 +160,10 @@ class _GameScreenState extends State<GameScreen> {
     final startPos = piece.position;
 
     if (startPos <= 0) {
-      // Exiting base: nothing on the board to visually step through, but
-      // still count out the roll with clicks.
-      for (var i = 0; i < diceValue; i++) {
-        ClickSound.play();
-        if (i < diceValue - 1) {
-          await Future.delayed(const Duration(milliseconds: 220));
-        }
-      }
+      // Exiting base: the piece makes one single move (base -> start
+      // cell), not `diceValue` individual steps, so it gets one click,
+      // not one per pip on the roll.
+      ClickSound.play();
       return;
     }
 
