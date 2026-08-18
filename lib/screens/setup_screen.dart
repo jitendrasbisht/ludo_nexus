@@ -52,7 +52,8 @@ class _SetupScreenState extends State<SetupScreen> {
     if (!mounted) return;
     setState(() {
       for (var i = 0; i < saved.length && i < _slots.length; i++) {
-        if (saved[i].name.isNotEmpty) _slots[i].name = saved[i].name;
+        if (saved[i].name.isEmpty) continue;
+        _slots[i].name = saved[i].name;
         _slots[i].photoPath = saved[i].photoPath;
       }
       _loadingProfiles = false;
@@ -106,9 +107,16 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _startGame() async {
     final activeSlots = _slots.take(_playerCount).toList();
 
+    // Always save one entry per slot index (not just the active/human
+    // ones) so a reload lines back up positionally -- otherwise skipping
+    // a bot slot here shifts every later slot's saved name/photo up by
+    // one on the next launch (see _loadSavedProfiles).
     await PlayerProfileStore.save([
-      for (final slot in activeSlots.where((s) => s.isHuman))
-        SavedProfile(name: slot.name, photoPath: slot.photoPath),
+      for (var i = 0; i < _slots.length; i++)
+        if (i < _playerCount && _slots[i].isHuman)
+          SavedProfile(name: _slots[i].name, photoPath: _slots[i].photoPath)
+        else
+          const SavedProfile(name: ''),
     ]);
 
     final players = [

@@ -66,7 +66,9 @@ def draw_star(cx, cy, size, filled=True):
         d.polygon(pts, outline=STAR)
 
 
-draw_moon(WIDTH - 160, 220, 88)
+# No static moon here on purpose -- NightCastOverlay draws the one moon
+# in this theme, animated, so there isn't a second motionless one baked
+# into the background competing with it.
 draw_cloud(190, 380, 1.0)
 draw_cloud(WIDTH - 260, 560, 0.75)
 draw_cloud(150, 1520, 0.85)

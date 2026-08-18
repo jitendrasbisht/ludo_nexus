@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import '../models/app_bg_theme.dart';
 import '../services/theme_store.dart';
 import 'cartoon_cast_overlay.dart';
+import 'night_cast_overlay.dart';
 
 /// Wraps [child] with the decorative ludo-themed background (a gradient
 /// wash with faint board/dice watermarks) shared by the splash, setup, and
 /// game screens, in place of the default plain Scaffold background.
 /// Reactively follows [ThemeStore.current], so switching the background
 /// theme anywhere in the app updates every visible instance immediately.
-/// The Cartoon theme additionally gets an animated background cast (see
-/// [CartoonCastOverlay]) layered between the image and [child].
+/// The Cartoon and Night Sky kids themes additionally get an animated
+/// background cast ([CartoonCastOverlay] / [NightCastOverlay]) layered
+/// between the image and [child].
 class AppBackground extends StatelessWidget {
   final Widget child;
 
@@ -31,6 +33,7 @@ class AppBackground extends StatelessWidget {
           child: Stack(
             children: [
               if (theme == AppBgTheme.kidsCartoon) const Positioned.fill(child: CartoonCastOverlay()),
+              if (theme == AppBgTheme.kidsNight) const Positioned.fill(child: NightCastOverlay()),
               child,
             ],
           ),
