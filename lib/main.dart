@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'screens/splash_screen.dart';
+import 'services/theme_store.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeStore.load();
   runApp(const LudoApp());
 }
 

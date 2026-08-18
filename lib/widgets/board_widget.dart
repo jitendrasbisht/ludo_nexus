@@ -224,15 +224,22 @@ class BoardWidget extends StatelessWidget {
         if (diceBuilder != null && activeColor != null) {
           final anchorFrac = BoardLayout.diceAnchor(activeColor!);
           final overlaySize = side * 0.12;
+          // The tappable box is deliberately bigger than the dice's own
+          // visual size -- the dice looked hard to tap reliably (needed
+          // several attempts), especially while it's still mid-slide
+          // between player anchors. Padding the hit area well past the
+          // visible edges makes near-misses register without changing
+          // how big the dice actually looks.
+          final tapSize = overlaySize * 1.7;
           final c = BoardLayout.toCanvas(anchorFrac, side);
           diceOverlay = AnimatedPositioned(
             key: const ValueKey('dice_overlay'),
             duration: const Duration(milliseconds: 750),
             curve: Curves.easeInOut,
-            left: c.dx - overlaySize / 2,
-            top: c.dy - overlaySize / 2,
-            width: overlaySize,
-            height: overlaySize,
+            left: c.dx - tapSize / 2,
+            top: c.dy - tapSize / 2,
+            width: tapSize,
+            height: tapSize,
             child: diceBuilder!(overlaySize),
           );
         }

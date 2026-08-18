@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 
 import '../game/ai_bot.dart';
 import '../game/ludo_engine.dart';
 import '../models/bot_difficulty.dart';
+import '../models/app_bg_theme.dart';
 import '../models/piece.dart';
 import '../models/player_color.dart';
 import '../services/capture_sound.dart';
 import '../services/click_sound.dart';
 import '../services/dice_roll_sound.dart';
 import '../services/sound_settings.dart';
+import '../services/theme_store.dart';
 import '../widgets/app_background.dart';
 import '../widgets/board_widget.dart';
 import '../widgets/dice_widget.dart';
@@ -213,11 +216,15 @@ class _GameScreenState extends State<GameScreen> {
     final result = engine.movePiece(piece, diceValue);
     if (result.capturedPieces.isNotEmpty) {
       CaptureSound.play();
+      HapticFeedback.mediumImpact();
       await Future.wait([
         for (final cp in result.capturedPieces)
           _walkPieceBack(cp, preMovePositions[cp]!),
       ]);
       if (!mounted) return;
+    }
+    if (result.finishedPiece) {
+      HapticFeedback.lightImpact();
     }
     final bonusGranted =
         !result.wonGame && engine.currentPlayer.color == piece.color;
@@ -321,11 +328,15 @@ class _GameScreenState extends State<GameScreen> {
     final result = engine.movePiece(piece, value);
     if (result.capturedPieces.isNotEmpty) {
       CaptureSound.play();
+      HapticFeedback.mediumImpact();
       await Future.wait([
         for (final cp in result.capturedPieces)
           _walkPieceBack(cp, preMovePositions[cp]!),
       ]);
       if (!mounted) return;
+    }
+    if (result.finishedPiece) {
+      HapticFeedback.lightImpact();
     }
     final bonusGranted =
         !result.wonGame && engine.currentPlayer.color == piece.color;
@@ -393,88 +404,100 @@ class _GameScreenState extends State<GameScreen> {
           _afterTurnAdvance();
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Ludo Nexus'),
-          backgroundColor: const Color(0xFF2A3E66),
-          foregroundColor: Colors.white,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: _SoundToggleButton(
-                muted: _soundMuted,
-                onTap: () => setState(() => SoundSettings.muted = !SoundSettings.muted),
-              ),
-            ),
-          ],
-        ),
-        body: AppBackground(
-          child: SafeArea(
-            child: Column(
-              children: [
-                PlayerChipsRow(
-                  players: engine.players,
-                  activeColor: current.color,
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Center(
-                      child: BoardWidget(
-                        players: engine.players,
-                        movablePieceKeys: movableKeys,
-                        onPieceTap: _onPieceTap,
-                        activeColor: current.color,
-                        finishedRanks: finishedRanks,
-                        walkingFractions: _walkingFractions,
-                        fastWalkPieces: _fastWalkPieces,
-                        diceBuilder: (size) => GestureDetector(
-                          onTap: _canHumanRoll ? _rollForHuman : null,
-                          child: DiceWidget(
-                            value: engine.lastRoll,
-                            rolling: _diceSpinning,
-                            color: current.color,
-                            size: size,
-                          ),
-                        ),
-                      ),
+      child: ValueListenableBuilder(
+        valueListenable: ThemeStore.current,
+        builder: (context, theme, _) => Scaffold(
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: AppBar(
+              title: const Text('Ludo Nexus'),
+              backgroundColor: theme.appBarColor,
+              foregroundColor: Colors.white,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: _SoundToggleButton(
+                    muted: _soundMuted,
+                    onTap: () => setState(
+                      () => SoundSettings.muted = !SoundSettings.muted,
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: GestureDetector(
-                      onTap: gameOver
-                          ? () => Navigator.of(context).pop()
-                          : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 20,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(26),
-                        ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            bottomText,
-                            maxLines: 1,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+              ],
+            ),
+          ),
+          body: AppBackground(
+            child: SafeArea(
+              child: Column(
+                children: [
+                  PlayerChipsRow(
+                    players: engine.players,
+                    activeColor: current.color,
+                    theme: theme,
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Center(
+                        child: BoardWidget(
+                          players: engine.players,
+                          movablePieceKeys: movableKeys,
+                          onPieceTap: _onPieceTap,
+                          activeColor: current.color,
+                          finishedRanks: finishedRanks,
+                          walkingFractions: _walkingFractions,
+                          fastWalkPieces: _fastWalkPieces,
+                          diceBuilder: (size) => GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _canHumanRoll ? _rollForHuman : null,
+                            child: Center(
+                              child: DiceWidget(
+                                value: engine.lastRoll,
+                                rolling: _diceSpinning,
+                                color: current.color,
+                                size: size,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: GestureDetector(
+                        onTap: gameOver
+                            ? () => Navigator.of(context).pop()
+                            : null,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 20,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(26),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              bottomText,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -525,7 +548,11 @@ class _SoundToggleButton extends StatelessWidget {
                 blurStyle: BlurStyle.inner,
                 offset: const Offset(0, -3),
               ),
-              BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 3)),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
             ],
           ),
           child: Icon(
