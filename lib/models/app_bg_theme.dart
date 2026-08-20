@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 /// the two never clash. [kidsCartoon] and [kidsNight] both trigger the
 /// comic-outline UI variant (see [isKids]) on the setup/game screen chrome
 /// (slot cards, buttons, toggles, player chips) instead of the classic
-/// glossy-bevel one used by [navy]/[sunset].
-enum AppBgTheme { navy, sunset, kidsCartoon, kidsNight }
+/// glossy-bevel one used by [navy]/[sunset]. [adventure] is a photo
+/// slideshow (see AdventureSlideshowOverlay) instead of a single static
+/// image -- its [assetPath] is only a fallback and isn't normally shown.
+enum AppBgTheme { navy, sunset, kidsCartoon, kidsNight, adventure }
 
 extension AppBgThemeX on AppBgTheme {
   String get label {
@@ -19,6 +21,8 @@ extension AppBgThemeX on AppBgTheme {
         return 'Cartoon';
       case AppBgTheme.kidsNight:
         return 'Night Sky';
+      case AppBgTheme.adventure:
+        return 'Adventure';
     }
   }
 
@@ -32,6 +36,8 @@ extension AppBgThemeX on AppBgTheme {
         return 'assets/background/ludo_background_kids.png';
       case AppBgTheme.kidsNight:
         return 'assets/background/ludo_background_kids_night.png';
+      case AppBgTheme.adventure:
+        return 'assets/background/adventure/DSCN1227.jpg';
     }
   }
 
@@ -45,6 +51,8 @@ extension AppBgThemeX on AppBgTheme {
         return const Color(0xFF3FA9DB);
       case AppBgTheme.kidsNight:
         return const Color(0xFF3A2F6E);
+      case AppBgTheme.adventure:
+        return const Color(0xFF3E5C74);
     }
   }
 
@@ -59,6 +67,8 @@ extension AppBgThemeX on AppBgTheme {
         return const Color(0xFF6EC6FF);
       case AppBgTheme.kidsNight:
         return const Color(0xFF5A3A7A);
+      case AppBgTheme.adventure:
+        return const Color(0xFF6E9CB8);
     }
   }
 

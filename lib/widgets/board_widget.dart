@@ -234,7 +234,7 @@ class BoardWidget extends StatelessWidget {
           final c = BoardLayout.toCanvas(anchorFrac, side);
           diceOverlay = AnimatedPositioned(
             key: const ValueKey('dice_overlay'),
-            duration: const Duration(milliseconds: 750),
+            duration: const Duration(milliseconds: 1400),
             curve: Curves.easeInOut,
             left: c.dx - tapSize / 2,
             top: c.dy - tapSize / 2,

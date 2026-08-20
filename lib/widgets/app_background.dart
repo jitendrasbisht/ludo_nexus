@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/app_bg_theme.dart';
 import '../services/theme_store.dart';
+import 'adventure_slideshow_overlay.dart';
 import 'cartoon_cast_overlay.dart';
 import 'night_cast_overlay.dart';
 
@@ -12,7 +13,9 @@ import 'night_cast_overlay.dart';
 /// theme anywhere in the app updates every visible instance immediately.
 /// The Cartoon and Night Sky kids themes additionally get an animated
 /// background cast ([CartoonCastOverlay] / [NightCastOverlay]) layered
-/// between the image and [child].
+/// between the image and [child]. The Adventure theme replaces the single
+/// static image entirely with a crossfading photo slideshow
+/// ([AdventureSlideshowOverlay]).
 class AppBackground extends StatelessWidget {
   final Widget child;
 
@@ -23,15 +26,19 @@ class AppBackground extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: ThemeStore.current,
       builder: (context, theme, _) {
+        final isAdventure = theme == AppBgTheme.adventure;
         return Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(theme.assetPath),
-              fit: BoxFit.cover,
-            ),
-          ),
+          decoration: isAdventure
+              ? null
+              : BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(theme.assetPath),
+                    fit: BoxFit.cover,
+                  ),
+                ),
           child: Stack(
             children: [
+              if (isAdventure) const Positioned.fill(child: AdventureSlideshowOverlay()),
               if (theme == AppBgTheme.kidsCartoon) const Positioned.fill(child: CartoonCastOverlay()),
               if (theme == AppBgTheme.kidsNight) const Positioned.fill(child: NightCastOverlay()),
               child,
