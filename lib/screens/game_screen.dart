@@ -85,7 +85,13 @@ class _GameScreenState extends State<GameScreen> {
   /// per step when a piece moves, rather than reusing that same click here.
   Future<int> _rollWithAnimation() async {
     setState(() => _diceSpinning = true);
-    const spinDuration = Duration(milliseconds: DiceRollSound.durationMs);
+    // Pinned to a literal 126ms (halved twice from the original 504ms
+    // wait) rather than derived from DiceRollSound.durationMs -- that
+    // constant now separately tracks the actual trimmed clip length
+    // (500ms -> 250ms), and the two aren't meant to stay proportional to
+    // each other; the sound keeps playing independently after this wait
+    // ends either way.
+    const spinDuration = Duration(milliseconds: 126);
     DiceRollSound.play();
     await Future.delayed(spinDuration);
     final value = engine.rollDice();
@@ -167,9 +173,21 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
-    for (var step = 1; step <= diceValue; step++) {
-      final pos = startPos + step;
-      if (pos > 57) break;
+    // Walks only as far as the engine will actually place the piece --
+    // crossing into the home stretch stops at its entry cell (see
+    // LudoEngine.targetPosition), so this may be fewer cells than
+    // `diceValue` pips when the roll had leftover steps at the boundary.
+    final target = engine.targetPosition(piece, diceValue);
+    for (var pos = startPos + 1; pos <= target; pos++) {
+      // Relative position 52's grid cell sits diagonally off from the
+      // home-stretch entry (53) -- a quirk of how the board's rotated
+      // corner geometry is built, not fixable without risking collisions
+      // with other colors' cells elsewhere on the board. Passing through
+      // it on the way into the home stretch reads as the piece visibly
+      // backing up a cell before turning in, so that one intermediate
+      // frame is skipped here; a piece that legitimately *stops* at 52
+      // (target == 52, not just passing through) still renders normally.
+      if (pos == 52 && target == 53) continue;
       if (!mounted) return;
       setState(() {
         _walkingFractions[piece] = fractionForPiecePosition(piece.color, pos);
@@ -267,7 +285,13 @@ class _GameScreenState extends State<GameScreen> {
     if (!mounted) return;
     setState(() {});
     if (!engine.gameOver && engine.currentPlayer.isBot && !_paused) {
-      Future.delayed(const Duration(milliseconds: 100), _playBotTurn);
+      // Longer than the dice's own slide-to-new-player animation (see
+      // board_widget.dart's dice AnimatedPositioned, 1400ms) -- a human
+      // always takes longer than that to tap the dice themselves, but a
+      // bot's next roll used to fire after only 100ms, interrupting the
+      // slide mid-flight and reading as the dice moving unnaturally fast
+      // between bot turns.
+      Future.delayed(const Duration(milliseconds: 1500), _playBotTurn);
     }
   }
 

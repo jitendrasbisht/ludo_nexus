@@ -8,7 +8,11 @@ import 'audio_player_pool.dart';
 
 /// Plays the bundled "metal box" dice-rattle clip once for the whole
 /// dice-roll spin -- a real audio asset (not synthesized, unlike
-/// [ClickSound]) since this one was supplied directly.
+/// [ClickSound]) since this one was supplied directly. Trimmed to its
+/// first 125ms (half of the already-halved 250ms cut) -- prior versions
+/// are kept at sound_backups/dice_roll_metal_box_original_500ms.wav and
+/// sound_backups/dice_roll_metal_box_250ms.wav, outside assets/ so they
+/// don't get bundled.
 ///
 /// Copies the asset to a local temp file up front and plays that via
 /// [DeviceFileSource] rather than playing [AssetSource] directly: on
@@ -18,7 +22,7 @@ import 'audio_player_pool.dart';
 /// clip's tail had actually played -- reading as the sound getting cut
 /// off. This is the same reliable pattern already used by [ClickSound].
 class DiceRollSound {
-  static const durationMs = 504;
+  static const durationMs = 125;
   static const _assetPath = 'assets/sounds/dice_roll_metal_box.wav';
 
   static final AudioPlayerPool _pool = AudioPlayerPool();
@@ -32,10 +36,13 @@ class DiceRollSound {
   static Future<void> _prepare() async {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/ludo_dice_roll_metal_box.wav');
-    if (!await file.exists()) {
-      final bytes = await rootBundle.load(_assetPath);
-      await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
-    }
+    final bytes = await rootBundle.load(_assetPath);
+    // Always rewrite rather than reusing an existing file -- a fixed
+    // filename in the OS temp/cache dir survives an app update (adb
+    // install -r, or a Play Store update), so a stale copy from a prior
+    // build would otherwise keep playing forever even after the bundled
+    // asset itself changes (e.g. a re-trim), silently ignoring the edit.
+    await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
     _filePath = file.path;
     await _pool.setVolume(1.0);
     debugPrint('DiceRollSound: source ready at ${file.path}');

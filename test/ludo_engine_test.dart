@@ -25,6 +25,52 @@ void main() {
     });
   });
 
+  group('home stretch entry', () {
+    test('a roll that would cross from the shared track into the home stretch stops at the entry cell', () {
+      final red = _player(PlayerColor.red);
+      final engine = LudoEngine(players: [red, _player(PlayerColor.green)]);
+      engine.currentPlayerIndex = engine.players.indexOf(red);
+
+      final piece = red.pieces.first..position = 50;
+      // 50 + 6 = 56 would land deep in the home stretch (and 50 + 6 could
+      // even reach past it on a smaller board) -- entering always stops
+      // exactly at 53, leftover pips discarded, so finishing needs a
+      // separate later move.
+      final result = engine.movePiece(piece, 6);
+
+      expect(result.success, isTrue);
+      expect(piece.position, 53);
+      expect(result.finishedPiece, isFalse);
+    });
+
+    test('a piece already in the home stretch keeps the normal exact-landing rule', () {
+      final red = _player(PlayerColor.red);
+      final engine = LudoEngine(players: [red, _player(PlayerColor.green)]);
+      engine.currentPlayerIndex = engine.players.indexOf(red);
+
+      final piece = red.pieces.first..position = 53;
+      // 53 + 6 = 59, overshoots 57 -- not a legal move for this piece
+      // (the other 3 pieces are still in base and stay movable on a 6).
+      expect(engine.movablePieces(6), isNot(contains(piece)));
+
+      final result = engine.movePiece(piece, 4); // 53 + 4 = 57, exact
+      expect(result.success, isTrue);
+      expect(result.finishedPiece, isTrue);
+    });
+
+    test('landing exactly on 52 from the shared track is not treated as crossing', () {
+      final red = _player(PlayerColor.red);
+      final engine = LudoEngine(players: [red, _player(PlayerColor.green)]);
+      engine.currentPlayerIndex = engine.players.indexOf(red);
+
+      final piece = red.pieces.first..position = 48;
+      final result = engine.movePiece(piece, 4); // 48 + 4 = 52, still shared track
+
+      expect(result.success, isTrue);
+      expect(piece.position, 52);
+    });
+  });
+
   group('captures', () {
     test('landing on an opponent on a non-safe cell captures it', () {
       final red = _player(PlayerColor.red);
@@ -157,7 +203,11 @@ void main() {
       final piece = red.pieces.first..position = 51;
       engine.currentPlayerIndex = engine.players.indexOf(red);
 
-      engine.movePiece(piece, 6); // rolled a 6 AND finishes the piece
+      // Rolling a 6 alone is enough to earn the bonus -- this particular
+      // move also crosses into the home stretch (clamped to 53, not 57;
+      // see "entering the home stretch always costs its own turn" below),
+      // so it isn't a finish, but the 6 still grants exactly one bonus.
+      engine.movePiece(piece, 6);
 
       expect(engine.consecutiveBonusRolls, 1);
     });

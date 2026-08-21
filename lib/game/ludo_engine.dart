@@ -85,12 +85,30 @@ class LudoEngine {
       if (piece.isFinished) continue;
       if (piece.isInBase) {
         if (diceValue == 6) result.add(piece);
-      } else {
-        final newPos = piece.position + diceValue;
-        if (newPos <= 57) result.add(piece);
+      } else if (targetPosition(piece, diceValue) <= 57) {
+        result.add(piece);
       }
     }
     return result;
+  }
+
+  /// Where [piece] would land after moving [diceValue] steps, without
+  /// mutating anything -- used by [movePiece] itself and by the UI so its
+  /// step-by-step walk animation ends up exactly where the engine will
+  /// actually place the piece.
+  ///
+  /// Crossing from the shared track into the private home stretch always
+  /// stops the piece exactly at the entry cell (53), even if the roll had
+  /// pips left over -- so a piece can never cover the shared track and the
+  /// home stretch in the same move, and finishing (57) always needs a
+  /// separate roll after entering. Once a piece is already inside the home
+  /// stretch, it keeps the normal exact-landing rule (a roll that would
+  /// overshoot 57 is simply illegal).
+  int targetPosition(Piece piece, int diceValue) {
+    if (piece.isInBase) return 1;
+    final newPos = piece.position + diceValue;
+    if (piece.isOnSharedTrack && newPos > 52) return 53;
+    return newPos;
   }
 
   int rollDice() {
@@ -120,9 +138,9 @@ class LudoEngine {
       if (diceValue != 6) return const MoveResult(success: false);
       piece.position = 1;
     } else {
-      final newPos = piece.position + diceValue;
-      if (newPos > 57) return const MoveResult(success: false);
-      piece.position = newPos;
+      final target = targetPosition(piece, diceValue);
+      if (target > 57) return const MoveResult(success: false);
+      piece.position = target;
     }
 
     final captured = <Piece>[];

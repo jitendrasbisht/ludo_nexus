@@ -29,6 +29,7 @@ class BoardPainter extends CustomPainter {
     _paintTrack(canvas, size);
     for (final color in PlayerColor.values) {
       _paintHomeStretch(canvas, size, color);
+      _paintHomeEntryArrow(canvas, size, color);
     }
     _paintCenterHub(canvas, size);
   }
@@ -143,10 +144,6 @@ class BoardPainter extends CustomPainter {
     }
   }
 
-  /// A small colored arrow on each color's own final shared-track cell,
-  /// pointing toward that color's home stretch -- marking exactly where a
-  /// piece turns inward off the shared loop, rather than leaving that
-  /// implicit.
   /// A small 4-point compass-rose star marking a safe cell, in place of a
   /// plain dot -- a classic Ludo-board decoration.
   void _paintCompassMarker(Canvas canvas, Offset center, double outerRadius) {
@@ -192,6 +189,56 @@ class BoardPainter extends CustomPainter {
       canvas.drawRect(rect, Paint()..color = color.material.withValues(alpha: 0.7));
       canvas.drawRect(rect, Paint()..color = _cellBorder..style = PaintingStyle.stroke..strokeWidth = 1.2);
     }
+  }
+
+  /// A small colored, dark-outlined arrow marking exactly where a piece
+  /// turns off the shared loop into its own home run -- placed one square
+  /// *before* the private home stretch (the last plain white shared-track
+  /// cell, relative position 51), pointing into the lane, rather than on
+  /// the colored entry cell itself.
+  ///
+  /// Position 51 is used deliberately instead of the shared-track cell
+  /// immediately before home (52): on this board's rotated corner
+  /// geometry, 52 sits diagonally off to the side of the home stretch
+  /// (see the walk-animation skip in GameScreen._walkPiece), while 51 sits
+  /// cleanly in line with it, so the arrow points straight into the lane
+  /// instead of from an off-axis cell.
+  void _paintHomeEntryArrow(Canvas canvas, Size size, PlayerColor color) {
+    final side = size.width;
+    final trackPoints = BoardLayout.trackPoints();
+    final approachIndex =
+        (BoardLayout.startGlobalIndex(color) - 2 + BoardLayout.trackLength) % BoardLayout.trackLength;
+    final approach = BoardLayout.toCanvas(trackPoints[approachIndex], side);
+    final entry = BoardLayout.toCanvas(BoardLayout.homeStretchPoints(color).first, side);
+    final dir = (entry - approach);
+    final dirNorm = dir / dir.distance;
+    final perp = Offset(-dirNorm.dy, dirNorm.dx);
+
+    final cellSize = BoardLayout.scaleLength(1 / 15, side);
+    final tipLen = cellSize * 0.32;
+    final backLen = cellSize * 0.22;
+    final halfWidth = cellSize * 0.26;
+
+    final tip = approach + dirNorm * tipLen;
+    final backCenter = approach - dirNorm * backLen;
+    final backLeft = backCenter + perp * halfWidth;
+    final backRight = backCenter - perp * halfWidth;
+
+    final path = Path()
+      ..moveTo(tip.dx, tip.dy)
+      ..lineTo(backLeft.dx, backLeft.dy)
+      ..lineTo(backRight.dx, backRight.dy)
+      ..close();
+
+    canvas.drawPath(path, Paint()..color = color.material);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = const Color(0xFF1B1B1B)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cellSize * 0.05
+        ..strokeJoin = StrokeJoin.round,
+    );
   }
 
   /// Warm cream used for the hub's border and center star, echoing the

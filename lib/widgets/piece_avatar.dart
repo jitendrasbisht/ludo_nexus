@@ -53,7 +53,7 @@ class PieceAvatar extends StatelessWidget {
         child: Image.file(File(photoPath!), fit: BoxFit.cover, width: badgeSize, height: badgeSize),
       );
     } else if (isBot) {
-      badge = Icon(Icons.smart_toy, color: onToken, size: badgeSize * 0.62, shadows: [glyphShadow]);
+      badge = Icon(Icons.star_rounded, color: onToken, size: badgeSize * 0.78, shadows: [glyphShadow]);
     } else {
       badge = Text(
         initial,

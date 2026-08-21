@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/app_bg_theme.dart';
 import '../models/player.dart';
 import '../models/player_color.dart';
+import 'bot_star_icon.dart';
 import 'ludo_colors.dart';
 import 'piece_avatar.dart';
 
@@ -113,13 +114,15 @@ class _PlayerChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PieceAvatar(
-            color: player.color,
-            size: 20,
-            photoPath: player.photoPath,
-            initial: player.name.isNotEmpty ? player.name[0].toUpperCase() : '?',
-            isBot: player.isBot,
-          ),
+          player.isBot
+              ? BotStarIcon(color: player.color, size: 20)
+              : PieceAvatar(
+                  color: player.color,
+                  size: 20,
+                  photoPath: player.photoPath,
+                  initial: player.name.isNotEmpty ? player.name[0].toUpperCase() : '?',
+                  isBot: player.isBot,
+                ),
           const SizedBox(width: 7),
           Flexible(
             child: Text(

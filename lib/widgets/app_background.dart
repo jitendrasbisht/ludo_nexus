@@ -28,6 +28,15 @@ class AppBackground extends StatelessWidget {
       builder: (context, theme, _) {
         final isAdventure = theme == AppBgTheme.adventure;
         return Container(
+          // Explicit fill regardless of theme -- without it, a Container
+          // with no decoration (the Adventure case, since its background
+          // comes from the slideshow overlay instead) shrinks to fit its
+          // content rather than filling the screen. That was invisible
+          // for the other themes (their DecorationImage forces full size
+          // on its own) but left a plain white gap below shorter content
+          // -- e.g. only 2 player cards -- for Adventure specifically.
+          width: double.infinity,
+          height: double.infinity,
           decoration: isAdventure
               ? null
               : BoxDecoration(

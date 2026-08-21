@@ -10,6 +10,7 @@ import '../services/avatar_storage.dart';
 import '../services/player_profile_store.dart';
 import '../services/theme_store.dart';
 import '../widgets/app_background.dart';
+import '../widgets/bot_star_icon.dart';
 import '../widgets/ludo_colors.dart';
 import '../widgets/piece_avatar.dart';
 import 'game_screen.dart';
@@ -154,6 +155,12 @@ class _SetupScreenState extends State<SetupScreen> {
             title: const Text('New Game'),
             backgroundColor: theme.appBarColor,
             foregroundColor: Colors.white,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: _ThemePickerButton(current: theme),
+              ),
+            ],
           ),
         ),
         body: AppBackground(
@@ -215,15 +222,6 @@ class _SetupScreenState extends State<SetupScreen> {
                                   ),
                                 ),
                             ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 240),
-                              child: _ThemeRow(current: theme),
-                            ),
                           ),
                         ),
                         Padding(
@@ -560,13 +558,14 @@ class _SlotCard extends StatelessWidget {
               children: [
                 GestureDetector(
                   onTap: slot.isHuman ? onPickPhoto : null,
-                  child: PieceAvatar(
-                    color: slot.color,
-                    size: kids ? 29 : 34,
-                    photoPath: slot.photoPath,
-                    initial: slot.name.isNotEmpty ? slot.name[0].toUpperCase() : '?',
-                    isBot: !slot.isHuman,
-                  ),
+                  child: slot.isHuman
+                      ? PieceAvatar(
+                          color: slot.color,
+                          size: kids ? 29 : 34,
+                          photoPath: slot.photoPath,
+                          initial: slot.name.isNotEmpty ? slot.name[0].toUpperCase() : '?',
+                        )
+                      : BotStarIcon(color: slot.color, size: kids ? 29 : 34),
                 ),
                 SizedBox(width: kids ? 7 : 8),
                 Row(
@@ -627,6 +626,24 @@ class _SlotCard extends StatelessWidget {
                   isDense: true,
                 ),
                 onChanged: (v) => slot.name = v,
+              )
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    BotStarIcon(color: slot.color, size: 22),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${slot.color.label} bot',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF2A3E66)),
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
@@ -635,81 +652,93 @@ class _SlotCard extends StatelessWidget {
   }
 }
 
-/// A full-width, clearly-labeled row above Start Game that opens
-/// [_ThemePickerSheet] -- replaces the old AppBar corner icon, which was
-/// easy to miss entirely. Shows a beautified gradient palette icon plus
-/// the current theme's name so the active choice is visible at a glance.
-class _ThemeRow extends StatelessWidget {
+/// A compact glossy icon button in the AppBar that opens [_ThemePickerSheet]
+/// to choose between the app's background themes.
+class _ThemePickerButton extends StatelessWidget {
   final AppBgTheme current;
 
-  const _ThemeRow({required this.current});
+  const _ThemePickerButton({required this.current});
 
-  Future<void> _openPicker(BuildContext context) {
-    return showModalBottomSheet<void>(
+  /// A small popover anchored right under the icon instead of a full-width
+  /// bottom sheet -- the sheet used to take up roughly a third of the
+  /// screen for what's just 5 swatches. Tapping a swatch selects and
+  /// closes in one motion; no title, no separate confirm step.
+  Future<void> _openPicker(BuildContext context) async {
+    final button = context.findRenderObject() as RenderBox;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final topRight = button.localToGlobal(button.size.topRight(Offset.zero), ancestor: overlay);
+    final position = RelativeRect.fromLTRB(
+      topRight.dx - 230,
+      topRight.dy + 8,
+      overlay.size.width - topRight.dx,
+      0,
+    );
+    await showMenu<void>(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _ThemePickerSheet(current: current),
+      position: position,
+      color: Colors.transparent,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+      items: [
+        PopupMenuItem<void>(
+          padding: EdgeInsets.zero,
+          enabled: false,
+          child: _ThemeSwatchStrip(current: current),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final kids = current.isKids;
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(14),
+      shape: const CircleBorder(),
       child: InkWell(
         onTap: () => _openPicker(context),
-        borderRadius: BorderRadius.circular(14),
+        customBorder: const CircleBorder(),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: kids ? Colors.white : Colors.black.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(14),
-            border: kids ? Border.all(color: const Color(0xFF1B1B1B), width: 2.5) : null,
-            boxShadow: kids
-                ? [BoxShadow(color: Colors.black.withValues(alpha: 0.2), offset: const Offset(3, 3))]
-                : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4, blurStyle: BlurStyle.inner)],
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white.withValues(alpha: 0.35), Colors.white.withValues(alpha: 0.12)],
+            ),
+            boxShadow: [
+              BoxShadow(color: Colors.white.withValues(alpha: 0.3), blurRadius: 2, blurStyle: BlurStyle.inner, offset: const Offset(0, 1)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 4, blurStyle: BlurStyle.inner, offset: const Offset(0, -3)),
+            ],
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const SweepGradient(
-                    colors: [
-                      Color(0xFFE85D8A),
-                      Color(0xFFE8B84B),
-                      Color(0xFF6EC6FF),
-                      Color(0xFF8A5CD6),
-                      Color(0xFFE85D8A),
-                    ],
-                  ),
-                  border: kids ? Border.all(color: const Color(0xFF1B1B1B), width: 2) : null,
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black26, blurRadius: 3, blurStyle: BlurStyle.inner, offset: Offset(0, -1)),
+          // A little rainbow-swatch dot instead of a plain white palette
+          // icon -- reads at a glance as "colors/themes live here" and is
+          // more eye-catching than a monochrome icon blending into the
+          // AppBar.
+          child: Center(
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: SweepGradient(
+                  colors: [
+                    Color(0xFFE85D8A),
+                    Color(0xFFE8B84B),
+                    Color(0xFF6EC6FF),
+                    Color(0xFF8A5CD6),
+                    Color(0xFFE85D8A),
                   ],
                 ),
-                child: const Icon(Icons.palette_rounded, color: Colors.white, size: 16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black26, blurRadius: 3, blurStyle: BlurStyle.inner, offset: Offset(0, -1)),
+                ],
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Theme: ${current.label}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: kids ? const Color(0xFF1B1B1B) : Colors.white,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: kids ? const Color(0xFF1B1B1B) : Colors.white.withValues(alpha: 0.7),
-              ),
-            ],
+              child: const Icon(Icons.palette_rounded, color: Colors.white, size: 16),
+            ),
           ),
         ),
       ),
@@ -717,95 +746,74 @@ class _ThemeRow extends StatelessWidget {
   }
 }
 
-/// Tapping a swatch applies that theme immediately (live preview) but
-/// keeps the sheet open, so you can flip through a few before settling --
-/// it only closes when you tap outside it (the modal scrim) or swipe it
-/// down, not the instant you pick something.
-class _ThemePickerSheet extends StatefulWidget {
+/// The popover's contents: one tight row of small swatches. Tapping a
+/// swatch applies that theme immediately and closes the popover in the
+/// same tap -- no title, no confirm button, just pick and go.
+class _ThemeSwatchStrip extends StatefulWidget {
   final AppBgTheme current;
 
-  const _ThemePickerSheet({required this.current});
+  const _ThemeSwatchStrip({required this.current});
 
   @override
-  State<_ThemePickerSheet> createState() => _ThemePickerSheetState();
+  State<_ThemeSwatchStrip> createState() => _ThemeSwatchStripState();
 }
 
-class _ThemePickerSheetState extends State<_ThemePickerSheet> {
+class _ThemeSwatchStripState extends State<_ThemeSwatchStrip> {
   late AppBgTheme _selected = widget.current;
 
   void _choose(AppBgTheme theme) {
-    if (theme == _selected) return;
     setState(() => _selected = theme);
     ThemeStore.select(theme);
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFDF6E6), Color(0xFFF2E6C4)],
-          ),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 10))],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Choose a theme',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2A3E66)),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Tap outside to close',
-              style: TextStyle(fontSize: 11, color: const Color(0xFF2A3E66).withValues(alpha: 0.55)),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (final theme in AppBgTheme.values)
-                  GestureDetector(
-                    onTap: () => _choose(theme),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: RadialGradient(
-                              center: const Alignment(-0.3, -0.3),
-                              colors: [Color.lerp(theme.swatchColor, Colors.white, 0.35)!, theme.swatchColor],
-                            ),
-                            border: Border.all(
-                              color: theme == _selected ? Colors.black87 : Colors.white,
-                              width: theme == _selected ? 3 : 1.5,
-                            ),
-                            boxShadow: const [
-                              BoxShadow(color: Colors.black26, blurRadius: 4, blurStyle: BlurStyle.inner, offset: Offset(0, -2)),
-                              BoxShadow(color: Colors.white54, blurRadius: 2, blurStyle: BlurStyle.inner, offset: Offset(0, 1.5)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          theme.label,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF2A3E66)),
-                        ),
-                      ],
-                    ),
+    final kids = _selected.isKids;
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: kids ? Colors.white : null,
+        gradient: kids
+            ? null
+            : LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color.lerp(_selected.swatchColor, Colors.white, 0.2)!, _selected.appBarColor],
+              ),
+        border: kids ? Border.all(color: const Color(0xFF1B1B1B), width: 2.5) : null,
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final theme in AppBgTheme.values) ...[
+            GestureDetector(
+              onTap: () => _choose(theme),
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    center: const Alignment(-0.3, -0.3),
+                    colors: [Color.lerp(theme.swatchColor, Colors.white, 0.35)!, theme.swatchColor],
                   ),
-              ],
+                  border: Border.all(
+                    color: theme == _selected ? Colors.black87 : Colors.white,
+                    width: theme == _selected ? 2.5 : 1.5,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black26, blurRadius: 3, blurStyle: BlurStyle.inner, offset: Offset(0, -1.5)),
+                    BoxShadow(color: Colors.white54, blurRadius: 1.5, blurStyle: BlurStyle.inner, offset: Offset(0, 1)),
+                  ],
+                ),
+              ),
             ),
+            if (theme != AppBgTheme.values.last) const SizedBox(width: 8),
           ],
-        ),
+        ],
       ),
     );
   }
