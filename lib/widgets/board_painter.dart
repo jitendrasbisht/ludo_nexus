@@ -245,6 +245,16 @@ class BoardPainter extends CustomPainter {
   /// board's own wood-tone palette instead of a hard black outline.
   static const Color _hubCream = Color(0xFFFDF8EC);
 
+  /// Light/dark pair per color for the hub wedges' glossy radial fill --
+  /// brighter and more saturated than [PlayerColor.material] alone, so the
+  /// bevel actually reads instead of just darkening a flat color slightly.
+  static const Map<PlayerColor, List<Color>> _hubGloss = {
+    PlayerColor.red: [Color(0xFFF5867F), Color(0xFFC43A33)],
+    PlayerColor.green: [Color(0xFF8FE0AB), Color(0xFF3A9C58)],
+    PlayerColor.yellow: [Color(0xFFF7E08A), Color(0xFFC9A227)],
+    PlayerColor.blue: [Color(0xFF8FC0F5), Color(0xFF2F6BC4)],
+  };
+
   /// The center hub is split into 4 triangular wedges, clipped to a
   /// rounded square (matching the board's rounded-cell language) with a
   /// cream border and a small cream compass star at its center. Rather
@@ -281,10 +291,40 @@ class BoardPainter extends CustomPainter {
         ..lineTo(px(tri[1]).dx, px(tri[1]).dy)
         ..lineTo(px(tri[2]).dx, px(tri[2]).dy)
         ..close();
-      canvas.drawPath(path, Paint()..color = color.material);
+      final gloss = _hubGloss[color]!;
+      canvas.drawPath(
+        path,
+        Paint()
+          ..shader = RadialGradient(
+            center: const Alignment(-0.4, -0.4),
+            radius: 0.9,
+            colors: gloss,
+          ).createShader(hubRect),
+      );
+      // A thin dark outline on every wedge, not just yellow's -- yellow
+      // fill against the cream hub border/star was low-contrast enough to
+      // look like it had no edge at all, but a uniform stroke on all 4
+      // keeps the hub looking consistent rather than singling one out.
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = const Color(0xFF1B1B1B)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = side * 0.006,
+      );
     }
     canvas.restore();
 
+    // A dark outline just outside the cream one -- the cream stroke alone
+    // read as barely-there against the board's own cream/tan background,
+    // the same low-contrast issue the per-wedge outlines above just fixed.
+    canvas.drawRRect(
+      hubRRect.inflate(side * 0.003),
+      Paint()
+        ..color = const Color(0xFF1B1B1B)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = side * 0.006,
+    );
     canvas.drawRRect(
       hubRRect,
       Paint()
@@ -293,10 +333,36 @@ class BoardPainter extends CustomPainter {
         ..strokeWidth = side * 0.01,
     );
 
-    final starOuter = hubRect.width * 0.14;
+    // A small glossy gold medallion (radial-shaded circle + a bright
+    // sparkle glint on top) in place of the old flat cream star, matching
+    // the wedges' own glossy treatment above instead of standing out as a
+    // flat shape against them.
+    final medallionRadius = hubRect.width * 0.13;
+    final medallionCenter = px(center);
+    canvas.drawCircle(
+      medallionCenter,
+      medallionRadius,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(-0.3, -0.4),
+          radius: 0.75,
+          colors: [Colors.white, Color(0xFFE8C94E)],
+        ).createShader(Rect.fromCircle(center: medallionCenter, radius: medallionRadius)),
+    );
+    canvas.drawCircle(
+      medallionCenter,
+      medallionRadius,
+      Paint()
+        ..color = const Color(0xFF1B1B1B)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = side * 0.0045,
+    );
+    // Dark navy rather than white -- a white sparkle sat right on top of
+    // the medallion's own white highlight (the gradient's lightest
+    // corner), reading as invisible instead of as a glint.
     canvas.drawPath(
-      _starPath(px(center), starOuter, starOuter * 0.32, 4),
-      Paint()..color = _hubCream,
+      _starPath(medallionCenter, medallionRadius * 0.62, medallionRadius * 0.62 * 0.32, 4),
+      Paint()..color = const Color(0xFF2B2440),
     );
   }
 

@@ -148,9 +148,24 @@ class BoardLayout {
       outward = Offset(dx < 0 ? -1 : 1, 0);
       lateral = const Offset(0, 1);
     }
-    final base = center + outward * 0.08;
-    const out = 0.022;
-    const lat = 0.025;
+    // Two separate constraints bound this cluster, not just one: it must
+    // stay inside the hub's own half-width (0.1) in the outward direction
+    // (or it clips the hub's edge), AND it must stay on the correct side
+    // of the 45-degree diagonal that separates this color's wedge from
+    // its neighbors' (or it collides with another color's finished
+    // pieces at the hub's center) -- pulling the cluster closer to center
+    // to fix the first problem alone (an earlier pass here) satisfied the
+    // edge constraint but violated the diagonal one instead, since moving
+    // inward shrinks the *outward* margin while the *lateral* spread
+    // stays the same size, tipping the piece's own footprint across the
+    // wedge boundary. At this finished-piece size (see the 0.28x scale in
+    // BoardWidget) both constraints hold with a few thousandths of margin
+    // to spare -- this is close to the largest these can get in a fixed
+    // 2x2 grid sized for 4 pieces; meaningfully bigger needs the pieces to
+    // shrink dynamically with how many have actually finished instead.
+    final base = center + outward * 0.057;
+    const out = 0.0165;
+    const lat = 0.0165;
     return [
       base + outward * out - lateral * lat,
       base + outward * out + lateral * lat,

@@ -178,6 +178,25 @@ class _GameScreenState extends State<GameScreen> {
     // LudoEngine.targetPosition), so this may be fewer cells than
     // `diceValue` pips when the roll had leftover steps at the boundary.
     final target = engine.targetPosition(piece, diceValue);
+
+    if (startPos == 52 && target == 53) {
+      // The piece is already resting at the diagonal-offset cell (52) from
+      // a previous turn that didn't have enough roll to cross -- this
+      // move's own walk never passes through 52 (the loop below starts at
+      // startPos + 1), so the skip a few lines down never fires, and
+      // without this the piece would hop in a single straight diagonal
+      // line from 52's off-axis position directly into 53. Routing it
+      // through 51's cell first (purely a visual waypoint -- the engine's
+      // position numbering doesn't actually pass through 51 here) keeps
+      // it a clean turn instead.
+      if (!mounted) return;
+      setState(() {
+        _walkingFractions[piece] = fractionForPiecePosition(piece.color, 51);
+      });
+      ClickSound.play();
+      await Future.delayed(const Duration(milliseconds: 420));
+    }
+
     for (var pos = startPos + 1; pos <= target; pos++) {
       // Relative position 52's grid cell sits diagonally off from the
       // home-stretch entry (53) -- a quirk of how the board's rotated
@@ -261,13 +280,26 @@ class _GameScreenState extends State<GameScreen> {
       }
       _statusText = bonusGranted ? '$message Go again!' : message;
     });
+    // Crossing into the home stretch grants a bonus roll whenever the
+    // crossing move was itself a 6 -- same player, no turn switch -- so a
+    // 6 that crosses followed immediately by an exact-roll finish plays
+    // out as two separate rolls with no pause for another player's turn
+    // in between, easy to misread as the finish-line rule being skipped
+    // entirely. A held beat here (mirroring the finish pause below) makes
+    // it read as two distinct moves instead of one continuous blur.
+    final justEnteredHomeStretch = preMovePositions[piece]! < 53 && piece.position == 53;
+    if (justEnteredHomeStretch && bonusGranted) {
+      HapticFeedback.selectionClick();
+    }
     // A finish (someone completing all 4 pieces) gets a much longer pause
     // than an ordinary move -- long enough to actually read the "finished
     // Nth!" banner and see their rank card land on the board, rather than
     // it flashing by mid-sequence when bots are playing back to back.
     final pause = result.justFinishedPlayer != null
         ? const Duration(milliseconds: 1800)
-        : const Duration(milliseconds: 80);
+        : justEnteredHomeStretch && bonusGranted
+            ? const Duration(milliseconds: 900)
+            : const Duration(milliseconds: 80);
     await Future.delayed(pause);
     if (!mounted) return;
     setState(() => _busy = false);
@@ -378,9 +410,19 @@ class _GameScreenState extends State<GameScreen> {
       }
       _statusText = bonusGranted ? '$message Go again!' : message;
     });
+    // See the matching comment in _applyMove -- a bonus roll from a 6 that
+    // crossed into the home stretch fires immediately with no turn switch,
+    // so an exact-roll finish right after reads as one continuous move
+    // unless there's a held beat between the two.
+    final justEnteredHomeStretch = preMovePositions[piece]! < 53 && piece.position == 53;
+    if (justEnteredHomeStretch && bonusGranted) {
+      HapticFeedback.selectionClick();
+    }
     final pause = result.justFinishedPlayer != null
         ? const Duration(milliseconds: 1800)
-        : const Duration(milliseconds: 80);
+        : justEnteredHomeStretch && bonusGranted
+            ? const Duration(milliseconds: 900)
+            : const Duration(milliseconds: 80);
     await Future.delayed(pause);
     if (!mounted) return;
     setState(() => _busy = false);

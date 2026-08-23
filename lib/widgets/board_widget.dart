@@ -6,6 +6,7 @@ import '../models/piece.dart';
 import '../models/player.dart';
 import '../models/player_color.dart';
 import 'board_painter.dart';
+import 'finish_crown_badge.dart';
 import 'piece_avatar.dart';
 
 /// Maps a piece's relative track position to its fractional board offset.
@@ -80,19 +81,6 @@ class BoardWidget extends StatelessWidget {
 
   static int pieceKey(PlayerColor color, int id) => color.index * 10 + id;
 
-  static String _finishCardAsset(int rank) {
-    switch (rank) {
-      case 1:
-        return 'assets/finish_cards/1st.png';
-      case 2:
-        return 'assets/finish_cards/2nd.png';
-      case 3:
-        return 'assets/finish_cards/3rd.png';
-      default:
-        return 'assets/finish_cards/last.png';
-    }
-  }
-
   Offset _fractionFor(Piece piece) {
     final walking = walkingFractions[piece];
     if (walking != null) {
@@ -143,7 +131,12 @@ class BoardWidget extends StatelessWidget {
             // pieces -> 50% each, 3 -> 33%, ...), staying fully visible
             // side by side instead of any of them hiding behind another,
             // packed into a small grid centered on the cell.
-            var effectiveSize = piece.isFinished ? pieceSize * 0.6 : pieceSize;
+            // Sized to actually fit 4 of them, non-overlapping and clear
+            // of neighboring colors, inside the hub's own wedge (see
+            // BoardLayout.finishedSlots) -- 0.6x and 0.45x were both too
+            // big for that space once all 4 of a color's pieces finish;
+            // 0.28x is close to the largest that still fits with margin.
+            var effectiveSize = piece.isFinished ? pieceSize * 0.28 : pieceSize;
 
             Offset nudge = Offset.zero;
             if (!piece.isFinished) {
@@ -215,7 +208,7 @@ class BoardWidget extends StatelessWidget {
             height: bottomRight.dy - topLeft.dy,
             child: Padding(
               padding: EdgeInsets.all(side * 0.01),
-              child: Image.asset(_finishCardAsset(entry.value), fit: BoxFit.contain),
+              child: FinishCrownBadge(rank: entry.value),
             ),
           ));
         }
